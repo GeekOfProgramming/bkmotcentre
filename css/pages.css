@@ -1413,42 +1413,44 @@
   gap: 70px;
 }
 
-/* Left: Angled Car Lift Photo */
+/* Left: Workshop bay photo */
 .what-we-do-visual-col {
   position: relative;
-  margin-left: -4vw;
+  margin-left: 0;
+  width: 100%;
 }
 
 .what-we-do-angled-frame {
   width: 100%;
-  max-width: 760px;
-  transform: skewX(-22deg);
+  max-width: 780px;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: 12px;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
   position: relative;
+  background-color: #021827;
 }
 
 .what-we-do-angled-inner {
-  transform: skewX(22deg) scale(1.18);
   position: relative;
   width: 100%;
+  height: 100%;
 }
 
 .what-we-do-car-bg {
   width: 100%;
-  height: auto;
+  height: 480px;
+  object-fit: cover;
+  object-position: center;
   display: block;
+  transition: transform 0.5s ease;
+}
+
+.what-we-do-angled-frame:hover .what-we-do-car-bg {
+  transform: scale(1.02);
 }
 
 .what-we-do-mechanic-img {
-  position: absolute;
-  bottom: 0;
-  right: 8%;
-  max-height: 85%;
-  width: auto;
-  pointer-events: none;
-  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
+  display: none;
 }
 
 /* Right: Intro + 4 Red Icons Grid + Button */
@@ -1675,13 +1677,22 @@
   .about-what-we-do-content-row {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: 50px;
+    gap: 40px;
   }
   .what-we-do-visual-col {
     margin-left: 0;
+    max-width: 720px;
+    width: 100%;
+    margin-inline: auto;
   }
   .what-we-do-angled-frame {
     margin: 0 auto;
+    border-radius: 10px;
+    width: 100%;
+  }
+  .what-we-do-car-bg {
+    height: 380px;
+    width: 100%;
   }
   .about-red-icons-grid {
     max-width: 500px;
@@ -1708,6 +1719,9 @@
   .about-hero-bay-bg {
     height: 320px;
   }
+  .what-we-do-car-bg {
+    height: 320px;
+  }
   .about-red-card-title {
     font-size: 44px;
   }
@@ -1725,6 +1739,10 @@
 
 @media (max-width: 580px) {
   .about-hero-bay-bg {
+    height: 240px;
+    border-radius: 8px;
+  }
+  .what-we-do-car-bg {
     height: 240px;
     border-radius: 8px;
   }
