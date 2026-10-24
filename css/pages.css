@@ -1239,7 +1239,517 @@
     display: flex;
     gap: 10px;
   }
-  body.home-page {
+  body.home-page,
+  body.aboutus-page {
     padding-bottom: 60px;
+  }
+}
+
+/* ==========================================================================
+   ABOUT US PAGE SPECIFIC STYLES
+   Pixel-accurate matching with screencapture-bkmotcentreltd-co-uk-aboutus
+   1. Section 1 Hero: Workshop Bay + Angled Frame + Floating Solid Red Card
+   2. Section 2 Our Mission: Light Gray (#eaeaf1) + Photo + Red accent
+   3. Section 3 What We Do: Navy Blue (#021827) + Slanted red chevron + 4 red blurbs
+   4. Section 4 Customer Promise Quotes Slider: Italic Khand typography + interactive dots
+   ========================================================================== */
+
+.aboutus-page {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  overflow-x: hidden;
+}
+
+/* --- Section 1: About Hero Section --- */
+.about-hero-section {
+  position: relative;
+  background-color: #ffffff;
+  padding: 0 0 80px 0;
+  overflow: hidden;
+}
+
+.about-hero-row {
+  width: 90%;
+  max-width: 1800px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  position: relative;
+  gap: 0;
+}
+
+/* Hero Visual Column (Left side angled image) */
+.about-hero-visual-col {
+  position: relative;
+  z-index: 2;
+  margin-left: -5vw;
+}
+
+.about-hero-angled-frame {
+  width: 100%;
+  max-width: 820px;
+  transform: skewX(-22deg);
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.16);
+  position: relative;
+}
+
+.about-hero-angled-inner {
+  transform: skewX(22deg) scale(1.18);
+  position: relative;
+  width: 100%;
+}
+
+.about-hero-bay-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.about-hero-mechanic-img {
+  position: absolute;
+  bottom: 0;
+  right: 5%;
+  max-height: 85%;
+  width: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
+}
+
+/* Hero Red Card (Solid #f71635 floating and overlapping the left photo) */
+.about-hero-card-col {
+  position: relative;
+  z-index: 10;
+  margin-left: -7vw;
+}
+
+.about-red-card {
+  background-color: #f71635;
+  color: #ffffff;
+  padding: 80px 60px;
+  max-width: 680px;
+  box-shadow: 0 25px 60px rgba(247, 22, 53, 0.28), 0 15px 35px rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+  position: relative;
+}
+
+.about-red-card-title {
+  font-family: 'Khand', sans-serif;
+  font-size: 80px;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.95;
+  color: #ffffff;
+  margin: 0 0 20px 0;
+  letter-spacing: 0.02em;
+}
+
+.white-double-divider {
+  width: 100px;
+  height: 10px;
+  border-top: 8px double #ffffff;
+  transform: skewX(-20deg);
+  margin-bottom: 28px;
+}
+
+.about-red-card-body p {
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 2.1;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* --- Section 2: Our Mission Section --- */
+.about-mission-section {
+  background-color: #eaeaf1;
+  position: relative;
+  padding: 110px 0 120px 0;
+}
+
+.about-mission-row {
+  width: 90%;
+  max-width: 1800px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 70px;
+}
+
+.section-heading-khand {
+  font-family: 'Khand', sans-serif;
+  font-size: 60px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  line-height: 1.1;
+  margin: 0 0 16px 0;
+}
+
+.section-heading-khand.text-white {
+  color: #ffffff;
+}
+
+.about-mission-body p {
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 2.1;
+  color: #333333;
+  margin: 0 0 22px 0;
+}
+
+.about-mission-body p:last-child {
+  margin-bottom: 0;
+}
+
+.about-mission-images-col {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.mission-photo-card {
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
+  max-width: 620px;
+  width: 100%;
+}
+
+.mission-checklist-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --- Section 3: What We Do Section (Dark Navy #021827) --- */
+.about-what-we-do-section {
+  background-color: #021827;
+  color: #ffffff;
+  position: relative;
+  padding: 100px 0 120px 0;
+  overflow: hidden;
+}
+
+.about-what-we-do-heading-row {
+  width: 90%;
+  max-width: 1800px;
+  margin: 0 auto 50px auto;
+  position: relative;
+}
+
+.what-we-do-slanted-red-chevron {
+  position: absolute;
+  top: -60px;
+  right: 0;
+  width: 320px;
+  height: 140px;
+  background-image: url('/assets/images/mechanic-19.png');
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: contain;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.about-what-we-do-content-row {
+  width: 90%;
+  max-width: 1800px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr;
+  align-items: center;
+  gap: 70px;
+}
+
+/* Left: Angled Car Lift Photo */
+.what-we-do-visual-col {
+  position: relative;
+  margin-left: -4vw;
+}
+
+.what-we-do-angled-frame {
+  width: 100%;
+  max-width: 760px;
+  transform: skewX(-22deg);
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.what-we-do-angled-inner {
+  transform: skewX(22deg) scale(1.18);
+  position: relative;
+  width: 100%;
+}
+
+.what-we-do-car-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.what-we-do-mechanic-img {
+  position: absolute;
+  bottom: 0;
+  right: 8%;
+  max-height: 85%;
+  width: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
+}
+
+/* Right: Intro + 4 Red Icons Grid + Button */
+.what-we-do-text-col {
+  padding-right: 20px;
+}
+
+.what-we-do-intro-text {
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 2.1;
+  color: #cbd5e1;
+  margin: 0 0 40px 0;
+  max-width: 620px;
+}
+
+.about-red-icons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 36px 28px;
+  margin-bottom: 50px;
+}
+
+.about-red-icon-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.about-red-icon-item:hover {
+  transform: translateX(4px);
+}
+
+.about-red-icon-item .red-icon-img-wrap {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.about-red-icon-item .red-icon-img-wrap img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.about-red-icon-item .red-icon-title {
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.about-red-icon-item:hover .red-icon-title {
+  color: #f71635;
+}
+
+.white-outline-thick-btn {
+  background-color: transparent;
+  color: #ffffff !important;
+  border: 3px solid #ffffff;
+}
+
+.white-outline-thick-btn:hover {
+  background-color: #ffffff;
+  color: #021827 !important;
+  transform: skewX(-22deg) translateY(-2px);
+}
+
+/* --- Section 4: Quotes Slider Section (Dark Navy #021827) --- */
+.about-quotes-slider-section {
+  background-color: #021827;
+  color: #ffffff;
+  padding: 60px 0 110px 0;
+  position: relative;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.quotes-slider-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+}
+
+.quotes-slides-wrapper {
+  position: relative;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+
+.quote-slide.active {
+  position: relative;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.slider-quote-text {
+  font-family: 'Khand', sans-serif;
+  font-size: 46px;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.35;
+  color: #ffffff;
+  margin: 0 auto;
+  max-width: 1000px;
+  letter-spacing: 0.01em;
+}
+
+.slider-pagination-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.slider-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.25);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s ease;
+}
+
+.slider-dot:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.2);
+}
+
+.slider-dot.active {
+  background-color: #f71635;
+  transform: scale(1.3);
+  box-shadow: 0 0 10px rgba(247, 22, 53, 0.6);
+}
+
+/* --- About Us Responsive Adaptations --- */
+@media (max-width: 1100px) {
+  .about-red-card-title {
+    font-size: 64px;
+  }
+  .slider-quote-text {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 980px) {
+  .about-hero-row {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .about-hero-visual-col {
+    margin-left: 0;
+    margin-bottom: 40px;
+  }
+  .about-hero-angled-frame {
+    margin: 0 auto;
+  }
+  .about-hero-card-col {
+    margin-left: 0;
+  }
+  .about-red-card {
+    margin: 0 auto;
+    padding: 50px 30px;
+  }
+  .white-double-divider {
+    margin: 0 auto 24px auto;
+  }
+  .about-mission-row {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 40px;
+  }
+  .about-what-we-do-content-row {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 50px;
+  }
+  .what-we-do-visual-col {
+    margin-left: 0;
+  }
+  .what-we-do-angled-frame {
+    margin: 0 auto;
+  }
+  .about-red-icons-grid {
+    max-width: 500px;
+    margin: 0 auto 40px auto;
+  }
+  .what-we-do-slanted-red-chevron {
+    display: none;
+  }
+  .what-we-do-intro-text {
+    margin: 0 auto 30px auto;
+  }
+  .slider-quote-text {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-hero-angled-frame,
+  .about-hero-angled-inner,
+  .what-we-do-angled-frame,
+  .what-we-do-angled-inner {
+    transform: none;
+  }
+  .about-red-card-title {
+    font-size: 44px;
+  }
+  .about-red-icons-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .about-red-icon-item {
+    justify-content: center;
+  }
+  .slider-quote-text {
+    font-size: 26px;
   }
 }

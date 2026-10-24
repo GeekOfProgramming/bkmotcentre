@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initOpeningStatus();
   initFaqAccordion();
   initContactForm();
+  initQuotesSlider();
 });
 
 /**
@@ -181,4 +182,52 @@ function initContactForm() {
     messageBox.className = `form-message ${type}`;
     messageBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+}
+
+/**
+ * Customer Promise Quotes Slider for About Us page
+ */
+function initQuotesSlider() {
+  const slider = document.getElementById('about-quotes-slider');
+  if (!slider) return;
+
+  const slides = slider.querySelectorAll('.quote-slide');
+  const dots = document.querySelectorAll('.slider-pagination-dots .slider-dot');
+  if (!slides.length) return;
+
+  let currentIndex = 0;
+  let autoplayInterval = null;
+
+  function showSlide(index) {
+    currentIndex = index;
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === index);
+    });
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+  }
+
+  function nextSlide() {
+    const next = (currentIndex + 1) % slides.length;
+    showSlide(next);
+  }
+
+  dots.forEach((dot, index) => {
+    dot.addEventListener('click', () => {
+      showSlide(index);
+      resetAutoplay();
+    });
+  });
+
+  function startAutoplay() {
+    autoplayInterval = setInterval(nextSlide, 5000);
+  }
+
+  function resetAutoplay() {
+    clearInterval(autoplayInterval);
+    startAutoplay();
+  }
+
+  startAutoplay();
 }

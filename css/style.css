@@ -1,10 +1,15 @@
 /* ==========================================================================
    BK MOT CENTRE LTD - Master Stylesheet
-   Architecture: Modular Design System (Tokens -> Base -> Components -> Pages)
-   Compliant with Anthropic frontend-design & Vercel Web Interface Guidelines
+   Architecture: Modular Design System:
+   1. tokens.css        -> Color, font and size design variables
+   2. base.css          -> Resets, base typography, accessibility
+   3. header-footer.css -> Reusable Site Header, Top Bar, Footer, Mobile Bar
+   4. components.css    -> Generic cards, buttons, forms, badges
+   5. pages.css         -> Specific page layouts (Home, About Us, Services, etc.)
    ========================================================================== */
 
 @import url('tokens.css');
 @import url('base.css');
+@import url('header-footer.css');
 @import url('components.css');
 @import url('pages.css');

@@ -1,0 +1,376 @@
+/* ==========================================================================
+   BK MOT CENTRE LTD - Global Header & Footer Components
+   Reusable across all pages (Home, About Us, Services, DPF Cleaning, Contact)
+   Clean, modern, accessible with high-conversion CTAs and mobile responsiveness
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Top Announcement Bar
+   ========================================================================== */
+
+.top-announcement-bar {
+  background-color: #0b1219;
+  color: #cbd5e1;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 0;
+}
+
+.top-announcement-inner {
+  width: 90%;
+  max-width: 1800px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.status-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.top-phone-link {
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+}
+
+.top-phone-link:hover {
+  color: #ff6b68;
+}
+
+/* ==========================================================================
+   2. Main Navigation Header
+   ========================================================================== */
+
+.site-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.header-container {
+  width: 90%;
+  max-width: 1800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.site-logo img {
+  height: 46px;
+  width: auto;
+  display: block;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+}
+
+.nav-list {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a5568;
+  text-decoration: none;
+  padding: 6px 0;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #0091f2;
+  transition: width 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #0091f2;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-call-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.header-call-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.call-btn-icon {
+  font-size: 18px;
+}
+
+.call-btn-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: right;
+}
+
+.call-btn-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.call-btn-val {
+  font-family: 'Khand', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f71635;
+}
+
+.header-book-btn {
+  padding: 10px 22px !important;
+  font-size: 13px !important;
+}
+
+.mobile-nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2.5px;
+  margin: 4px 0;
+  background-color: #1a1a1a;
+  transition: 0.2s ease;
+}
+
+/* ==========================================================================
+   3. Site Footer
+   ========================================================================== */
+
+.site-footer {
+  background-color: #18191c;
+  color: #94a3b8;
+  padding: 40px 0 25px;
+}
+
+.footer-nav-wrap {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.footer-nav-list {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.footer-nav-list a {
+  color: #cbd5e1;
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-nav-list a:hover {
+  color: #0091f2;
+}
+
+.footer-bottom-bar {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 20px;
+}
+
+.footer-bottom-inner {
+  width: 90%;
+  max-width: 1800px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #64748b;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer-rss-icon {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.footer-rss-icon:hover {
+  background-color: #f71635;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   4. Mobile Sticky Action Bar
+   ========================================================================== */
+
+.mobile-sticky-action-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 999;
+  padding: 10px 16px;
+  box-sizing: border-box;
+}
+
+.mobile-sticky-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.mobile-call-btn {
+  background-color: #021827;
+  color: #ffffff;
+}
+
+.mobile-book-btn {
+  background-color: #f71635;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Header & Footer Media Queries
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .header-actions {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-announcement-bar {
+    display: none;
+  }
+  .mobile-nav-toggle {
+    display: block;
+  }
+  .site-nav {
+    position: fixed;
+    top: 72px;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: none;
+  }
+  .site-nav.open {
+    display: block;
+  }
+  .nav-list {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .mobile-sticky-action-bar {
+    display: flex;
+    gap: 10px;
+  }
+}

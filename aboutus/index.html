@@ -3,44 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Us | BK MOT Centre Ltd Smethwick, Birmingham</title>
+  <title>About Us | BK Mot Centre</title>
   <meta name="description" content="Learn about BK MOT Centre Ltd in Smethwick. 40 years combined automotive experience providing Triple A service, MOT testing, DPF cleaning, and repairs.">
+  <meta name="keywords" content="About BK MOT Centre, Smethwick mechanics, automotive experience Birmingham, car garage West Midlands">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://bkmotcentreltd.co.uk/aboutus/">
+  <meta property="og:title" content="About Us | BK Mot Centre">
+  <meta property="og:description" content="40 years combined automotive experience. Specialising in MOT testing, DPF cleaning, and vehicle repairs in Smethwick.">
+  <meta property="og:image" content="/assets/images/AdobeStock_165290661.jpeg">
+
   <link rel="canonical" href="https://bkmotcentreltd.co.uk/aboutus/">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Schema.org LocalBusiness Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AutoRepair",
+    "name": "BK MOT Centre Ltd",
+    "image": "https://bkmotcentreltd.co.uk/assets/images/logo.png",
+    "telephone": "+441215589215",
+    "url": "https://bkmotcentreltd.co.uk/aboutus/",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "161 Rolfe Street",
+      "addressLocality": "Smethwick",
+      "addressRegion": "West Midlands",
+      "postalCode": "B66 2AU",
+      "addressCountry": "GB"
+    }
+  }
+  </script>
 </head>
-<body>
+<body class="aboutus-page">
   <!-- Keyboard Accessibility Skip Link -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
-  <!-- Top Contact Bar -->
-  <aside class="top-bar" aria-label="Quick contact and opening hours">
-    <div class="container top-bar-inner">
-      <div class="top-bar-items">
-        <div class="top-bar-item">
-          <span>📍</span> 161 Rolfe Street, Smethwick, Birmingham B66 2AU
-        </div>
-        <div class="top-bar-item">
-          <span>🕒</span> Everyday: 9:00 AM – 6:00 PM
-        </div>
+  <!-- Top Announcement Bar (Header component) -->
+  <aside class="top-announcement-bar" aria-label="Quick contact and garage opening hours">
+    <div class="header-container top-announcement-inner">
+      <div class="top-bar-item">
+        <span class="icon-pin">📍</span>
+        <span>161 Rolfe Street, Smethwick, Birmingham B66 2AU</span>
       </div>
-      <div class="top-bar-items">
-        <div class="status-badge live-status-badge">
-          <span class="status-dot"></span>
-          <span class="status-text">Open Today: 9am – 6pm</span>
+      <div class="top-bar-right">
+        <div class="status-live-pill">
+          <span class="status-live-dot"></span>
+          <span>Open Everyday: 9:00 AM – 6:00 PM</span>
         </div>
-        <div class="top-bar-item">
-          <span>📞</span> <a href="tel:01215589215"><strong>0121 558 9215</strong></a>
-        </div>
+        <a href="tel:01215589215" class="top-phone-link">
+          <span>📞</span> <strong>0121 558 9215</strong>
+        </a>
       </div>
     </div>
   </aside>
 
-  <!-- Navigation Header -->
+  <!-- Main Navigation Header (Header component) -->
   <header class="site-header">
-    <div class="container header-inner">
-      <a href="/" class="site-logo" aria-label="BK MOT Centre Ltd Home">
-        <img src="/assets/images/logo.png" alt="BK MOT Centre Logo" width="160" height="48">
+    <div class="header-container">
+      <a href="/" class="site-logo" aria-label="BK MOT Centre Home">
+        <img src="/assets/images/logo.png" alt="BK Mot Centre Logo" width="168" height="52">
       </a>
 
       <nav class="site-nav" aria-label="Primary Navigation">
@@ -53,12 +78,15 @@
         </ul>
       </nav>
 
-      <div class="header-cta">
-        <div class="header-phone-link">
-          <span class="header-phone-label">Direct Helpline</span>
-          <a href="tel:01215589215" class="header-phone-number">0121 558 9215</a>
-        </div>
-        <a href="/contactus/" class="btn btn-primary">Book Appointment</a>
+      <div class="header-actions">
+        <a href="tel:01215589215" class="header-call-btn">
+          <span class="call-btn-icon">📞</span>
+          <span class="call-btn-text">
+            <span class="call-btn-label">Call Now</span>
+            <span class="call-btn-val">0121 558 9215</span>
+          </span>
+        </a>
+        <a href="/contactus/" class="skewed-btn red-btn header-book-btn">Book Appointment <span class="btn-arrow-icon">&gt;</span></a>
       </div>
 
       <button class="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
@@ -71,256 +99,245 @@
 
   <main id="main-content">
 
-  <!-- Page Hero -->
-  <section class="page-hero" style="background-image: url('/assets/images/AdobeStock_165290661.jpeg');">
-    <div class="page-hero-overlay"></div>
-    <div class="container page-hero-grid">
-      <div>
-        <span class="hero-tagline">40 Years Combined Experience</span>
-        <h1 class="page-hero-title">About BK MOT CENTRE</h1>
-        <p class="page-hero-desc">
-          We at BK Mot Centre have 40 years combined experience in the automotive industry. We aim to provide quick service at competitive prices. We are based in Smethwick with easy access from the main road.
-        </p>
-        <div class="page-hero-cta">
-          <a href="/contactus/" class="btn btn-primary btn-arrow">Book An Appointment</a>
-          <a href="tel:01215589215" class="page-hero-phone">
-            <span>📞</span> (0121) 558 9215
-          </a>
-        </div>
-      </div>
-      <div class="page-hero-visual">
-        <img src="/assets/images/mechanic-73.png" alt="BK MOT qualified mechanic" width="360" height="380">
-      </div>
-    </div>
-  </section>
-
-  <!-- Mission Section -->
-  <section class="section-pad">
-    <div class="container mission-grid">
-      <div>
-        <span class="section-subtitle">Our Core Philosophy</span>
-        <h2 class="section-title">Our Mission</h2>
-        <div class="section-title-divider"></div>
-
-        <p style="color: var(--color-text-muted); font-size: 1.05rem; margin-bottom: 18px;">
-          We pride ourselves in providing a <strong>Triple A service</strong> to all our customers. We aim to see to your needs as quickly as possible with as little delay as possible.
-        </p>
-        <p style="color: var(--color-text-muted); font-size: 1.05rem; margin-bottom: 18px;">
-          All our engineers are fully qualified to carry out work to the highest industry standards. We aim to keep our customers happy again and again so that we may build a long term relationship. This ensures our customer base continually grows through trust and word of mouth.
-        </p>
-        <p style="color: var(--color-text-muted); font-size: 1.05rem; margin-bottom: 24px;">
-          We are pioneers in our industry, providing excellent service at competitive prices and we hope to keep going for many years to come.
-        </p>
-
-        <a href="/services/" class="btn btn-outline-dark btn-arrow">Discover Our Services</a>
-      </div>
-
-      <div class="mission-images-grid">
-        <div class="mission-img-item">
-          <img src="/assets/images/mechanic-63.png" alt="BK MOT technician team" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div class="mission-img-item">
-          <img src="/assets/images/AdobeStock_279110807.jpeg" alt="Workshop equipment and diagnostic tools" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- What We Do Section (Matching Original Design with Red Icons) -->
-  <section class="what-we-do-section">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title text-white">What We Do</h2>
-        <div class="section-title-divider"></div>
-      </div>
-
-      <div class="what-we-do-grid">
-        <div class="what-we-do-visual">
-          <img src="/assets/images/mechanic-84.png" alt="BK MOT technician inspects car" width="360" height="400">
+    <!-- Section 1: Hero - Full Workshop Bay + Floating Red Card "About BK MOT Centre" -->
+    <section class="about-hero-section">
+      <div class="about-hero-row">
+        
+        <!-- Left: Slanted Workshop Bay Background + Mechanic 73 -->
+        <div class="about-hero-visual-col">
+          <div class="about-hero-angled-frame">
+            <div class="about-hero-angled-inner">
+              <img src="/assets/images/AdobeStock_165290661.jpeg" alt="BK MOT Centre workshop bay and ramp" class="about-hero-bay-bg" fetchpriority="high">
+              <img src="/assets/images/mechanic-73.png" alt="Vehicle technician inspecting underbody" class="about-hero-mechanic-img" fetchpriority="high">
+            </div>
+          </div>
         </div>
 
-        <div>
-          <p style="color: #cbd5e1; font-size: 1.1rem; line-height: 1.6;">
+        <!-- Right: Floating Red Card (Solid #f71635) -->
+        <div class="about-hero-card-col">
+          <div class="about-red-card">
+            <h1 class="about-red-card-title">About BK MOT CENTRE</h1>
+            <div class="white-double-divider" aria-hidden="true"></div>
+            <div class="about-red-card-body">
+              <p>We at BK Mot Centre have 40 years combined experience in the automotive industry. We aim to provide quick service at competitive prices. We are based in Smethwick with easy access from the main road. We specialise in MOT and servicing of all vehicle types. If you are looking for a regular mechanic for your vehicle needs we are here to help. We also specialise in Diesel Particulate Filter (DPF) Cleaning. Avoid expensive repair bills and keep your car running smoothly with this cleaning service. You many need this service if the DPF warning symbol has appeared on your dashboard, you are not getting all the power like you do normally, The automatic stop-start system isn't working , your fuel economy is poor or your cooking fans run more than normal.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 2: Our Mission (Light Background + Mechanic Clipboards + Slanted Red Chevron Accent) -->
+    <section class="about-mission-section">
+      <div class="about-mission-row">
+        
+        <!-- Left Column: Mission Text -->
+        <div class="about-mission-text-col">
+          <h2 class="section-heading-khand">Our Mission</h2>
+          <div class="red-double-divider" aria-hidden="true"></div>
+          <div class="about-mission-body">
+            <p>We pride ourselves in providing a triple A service to all our customers. We aim to see to your needs as quickly as possible with as little delay as possible.</p>
+            <p>All our engineers are qualified to carry out work to the highest standard. We aim to keep our customers happy again and again so that we may build a long term relationship. This ensures our customer base to continually grow.</p>
+            <p>We are pioneers in our industry, providing excellent service at competitive prices and we hope to keep going for many years to come.</p>
+          </div>
+        </div>
+
+        <!-- Right Column: Overlapping Photos (mechanic-63.png + AdobeStock_279110807.jpeg) -->
+        <div class="about-mission-images-col">
+          <div class="mission-angled-top-accent" aria-hidden="true"></div>
+          <div class="mission-photo-card">
+            <img src="/assets/images/AdobeStock_279110807.jpeg" alt="Engineer inspecting engine and taking notes on vehicle checklist" class="mission-checklist-img" loading="lazy">
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 3: What We Do (Dark Navy Blue #021827 + Mechanic on Car Lift Left + 4 Red Icons Right) -->
+    <section class="about-what-we-do-section">
+      <div class="about-what-we-do-heading-row">
+        <h2 class="section-heading-khand text-white">What We Do</h2>
+        <div class="red-double-divider" aria-hidden="true"></div>
+        <div class="what-we-do-slanted-red-chevron" aria-hidden="true"></div>
+      </div>
+
+      <div class="about-what-we-do-content-row">
+        
+        <!-- Left: Red car on lift with mechanic (AdobeStock_71143570 + mechanic-84) -->
+        <div class="what-we-do-visual-col">
+          <div class="what-we-do-angled-frame">
+            <div class="what-we-do-angled-inner">
+              <img src="/assets/images/AdobeStock_71143570.jpeg" alt="Red vehicle on ramp at BK MOT Centre" class="what-we-do-car-bg" loading="lazy">
+              <img src="/assets/images/mechanic-84.png" alt="Mechanic testing wheel and brakes" class="what-we-do-mechanic-img" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Description + 4 Red Icons Grid + "Our Services" Skewed Button -->
+        <div class="what-we-do-text-col">
+          <p class="what-we-do-intro-text">
             We specialise in all aspects of vehicle maintenance and repair. We have dedicated teams for MOT's, Servicing and DPF cleaning. Below are some of our services.
           </p>
 
-          <div class="what-we-do-blurbs">
+          <div class="about-red-icons-grid">
             
-            <div class="red-blurb-card">
-              <div class="red-blurb-icon">
-                <img src="/assets/icons/mechanic-icon-6-red.png" alt="Vehicle diagnostics">
+            <a href="/services/" class="about-red-icon-item">
+              <div class="red-icon-img-wrap">
+                <img src="/assets/icons/mechanic-icon-6-red.png" alt="Vehicle Diagnostics Icon" width="40" height="40" loading="lazy">
               </div>
-              <h3 class="red-blurb-title">vehicle diagnostics</h3>
-            </div>
+              <h4 class="red-icon-title">vehicle diagnostics</h4>
+            </a>
 
-            <div class="red-blurb-card">
-              <div class="red-blurb-icon">
-                <img src="/assets/icons/mechanic-icon-1-red.png" alt="Brakes and clutches">
+            <a href="/services/" class="about-red-icon-item">
+              <div class="red-icon-img-wrap">
+                <img src="/assets/icons/mechanic-icon-1-red.png" alt="Brakes and Clutches Icon" width="40" height="40" loading="lazy">
               </div>
-              <h3 class="red-blurb-title">Brakes & Clutches</h3>
-            </div>
+              <h4 class="red-icon-title">Brakes &amp; Clutches</h4>
+            </a>
 
-            <div class="red-blurb-card">
-              <div class="red-blurb-icon">
-                <img src="/assets/icons/mechanic-icon-9-red.png" alt="MOT Centre">
+            <a href="/services/" class="about-red-icon-item">
+              <div class="red-icon-img-wrap">
+                <img src="/assets/icons/mechanic-icon-9-red.png" alt="MOT Centre Icon" width="40" height="40" loading="lazy">
               </div>
-              <h3 class="red-blurb-title">MOT Centre</h3>
-            </div>
+              <h4 class="red-icon-title">MOT Centre</h4>
+            </a>
 
-            <div class="red-blurb-card">
-              <div class="red-blurb-icon">
-                <img src="/assets/icons/mechanic-icon-12-red.png" alt="Car & Van Servicing">
+            <a href="/services/" class="about-red-icon-item">
+              <div class="red-icon-img-wrap">
+                <img src="/assets/icons/mechanic-icon-12-red.png" alt="Car and Van Servicing Icon" width="40" height="40" loading="lazy">
               </div>
-              <h3 class="red-blurb-title">Car & Van Servicing</h3>
-            </div>
+              <h4 class="red-icon-title">Car &amp; Van Servicing</h4>
+            </a>
 
           </div>
 
-          <a href="/services/" class="btn btn-primary btn-arrow">Our Services</a>
+          <div class="what-we-do-btn-wrap">
+            <a href="/services/" class="skewed-btn white-outline-thick-btn">Our Services <span class="btn-arrow-icon">&gt;</span></a>
+          </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Testimonials / Core Values Quotes -->
-  <section class="quotes-section">
-    <div class="container">
-      <div class="quotes-grid">
+      </div>
+    </section>
+
+    <!-- Section 4: Customer Promise / Slider Quotes (Navy Blue Background with Elegant Italic Quotes) -->
+    <section class="about-quotes-slider-section">
+      <div class="container quotes-slider-container">
         
-        <div class="quote-card-item">
-          <p>"We are pioneers in our industry, providing excellent service at competitive prices and we hope to keep going for many years to come"</p>
-        </div>
-
-        <div class="quote-card-item">
-          <p>"We pride ourselves in providing a triple A service to all our customers. We aim to see to your needs as quickly as possible with as little delay as possible"</p>
-        </div>
-
-        <div class="quote-card-item">
-          <p>"All our engineers are qualified to carry out work to the highest standard."</p>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- Bottom 3 Action Columns -->
-  <section class="bottom-cta-section">
-    <div class="bottom-cta-grid">
-      <div class="bottom-cta-card card-dark">
-        <div>
-          <h3 class="bottom-cta-title">DPF Cleaning Speciality</h3>
-          <p class="bottom-cta-desc">
-            We are experts in cleaning DPFs. Learn how our specialised flush and test drive can restore engine power and save you £1,000s.
-          </p>
-        </div>
-        <a href="/dpf-cleaning-service/" class="btn btn-outline btn-arrow">About DPF Cleaning</a>
-      </div>
-
-      <div class="bottom-cta-card card-alt">
-        <div>
-          <h3 class="bottom-cta-title">Book Appointment</h3>
-          <p class="bottom-cta-desc">
-            Book your car in for an MOT or Service by using our quick online booking form. We confirm your slot promptly.
-          </p>
-        </div>
-        <a href="/contactus/" class="btn btn-primary btn-arrow">Book Online</a>
-      </div>
-
-      <div class="bottom-cta-card card-primary">
-        <div>
-          <h3 class="bottom-cta-title">Contact Us Directly</h3>
-          <p class="bottom-cta-desc">
-            Have questions about your car or need immediate assistance? Our experienced mechanics are ready to take your call.
-          </p>
-          <div class="bottom-cta-phone">
-            <span>📞</span> <span>(0121) 558-9215</span>
+        <div class="quotes-slides-wrapper" id="about-quotes-slider">
+          
+          <div class="quote-slide active" data-slide="0">
+            <blockquote class="slider-quote-text">
+              “We are pioneers in our industry, providing excellent service at competitive prices and we hope to keep going for many years to come”
+            </blockquote>
           </div>
+
+          <div class="quote-slide" data-slide="1">
+            <blockquote class="slider-quote-text">
+              “We pride ourselves in providing a triple A service to all our customers. We aim to see to your needs as quickly as possible with as little delay as possible”
+            </blockquote>
+          </div>
+
+          <div class="quote-slide" data-slide="2">
+            <blockquote class="slider-quote-text">
+              “All our engineers are qualified to carry out work to the highest standard.”
+            </blockquote>
+          </div>
+
         </div>
-        <a href="/contactus/" class="btn btn-outline btn-arrow">Message Us</a>
+
+        <!-- Slider Pagination Dots -->
+        <div class="slider-pagination-dots" aria-label="Quote slider pagination">
+          <button class="slider-dot active" data-target="0" aria-label="Slide 1"></button>
+          <button class="slider-dot" data-target="1" aria-label="Slide 2"></button>
+          <button class="slider-dot" data-target="2" aria-label="Slide 3"></button>
+        </div>
+
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- Section 5: 3 Bottom Action Cards (Red Card + Dark Blue Card + White Card with Mechanic Photo) -->
+    <section class="bottom-three-cards-section">
+      <div class="container bottom-cards-container">
+        <div class="bottom-three-cards-grid">
+          
+          <!-- Card 1: DPF Cleaning Speciality (Solid Red #f71635) -->
+          <div class="bottom-action-card card-dpf-red">
+            <div class="card-inner-content">
+              <div class="card-eyebrow">Diesel Specialists</div>
+              <h4 class="card-heading">DPF Cleaning Speciality</h4>
+              <p class="card-text">We are experts in cleaning DPF's. Read more about our cleaning service.</p>
+            </div>
+            <div class="card-btn-wrap">
+              <a href="/dpf-cleaning-service/" class="skewed-btn transparent-outline-btn">About DPF Cleaning <span class="btn-arrow-icon">&gt;</span></a>
+            </div>
+          </div>
+
+          <!-- Card 2: Book Appointment (Dark Blue #021827 + mechanic-87.jpg background) -->
+          <div class="bottom-action-card card-booking-blue">
+            <div class="card-inner-content">
+              <div class="card-eyebrow">Fast Online Booking</div>
+              <h4 class="card-heading">Book Appointment</h4>
+              <p class="card-text">Book your car in for an MOT or Service by using our online form.</p>
+            </div>
+            <div class="card-btn-wrap">
+              <a href="/contactus/" class="skewed-btn transparent-outline-btn">Book Online <span class="btn-arrow-icon">&gt;</span></a>
+            </div>
+          </div>
+
+          <!-- Card 3: Contact Us (White/Light + mechanic-58.jpg background + Blue Phone #0251b8) -->
+          <div class="bottom-action-card card-contact-white">
+            <div class="card-inner-content">
+              <div class="card-eyebrow card-eyebrow-dark">Direct Support</div>
+              <h4 class="card-heading card-heading-dark">Contact Us</h4>
+              <div class="contact-blurb-item">
+                <span class="contact-phone-icon">📞</span>
+                <div>
+                  <h4 class="contact-label">Call us</h4>
+                  <a href="tel:01215589215" class="contact-phone-number">(0121) 558-9215</a>
+                </div>
+              </div>
+            </div>
+            <div class="card-btn-wrap">
+              <a href="/contactus/" class="skewed-btn blue-solid-btn">Message Us <span class="btn-arrow-icon">&gt;</span></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <!-- Site Footer -->
+  <!-- Site Footer (Footer component) -->
   <footer class="site-footer">
-    <div class="container footer-main">
-      <div class="footer-grid">
-        <div>
-          <div class="footer-logo">
-            <img src="/assets/images/logo.png" alt="BK MOT Centre Logo" width="160" height="48">
-          </div>
-          <p class="footer-about-text">
-            BK MOT Centre Ltd is Smethwick's premier independent vehicle testing, servicing, and repair garage with over 40 years of combined mechanical expertise.
-          </p>
-          <div class="status-badge live-status-badge" style="display: inline-flex;">
-            <span class="status-dot"></span>
-            <span class="status-text">Open Today: 9am – 6pm</span>
-          </div>
-        </div>
-
-        <div>
-          <h4 class="footer-title">Quick Links</h4>
-          <ul class="footer-links">
-            <li><a href="/">Home</a></li>
-            <li><a href="/aboutus/">About Us</a></li>
-            <li><a href="/dpf-cleaning-service/">DPF Cleaning Service</a></li>
-            <li><a href="/services/">Our Services</a></li>
-            <li><a href="/contactus/">Contact Us</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-title">Our Services</h4>
-          <ul class="footer-links">
-            <li><a href="/services/">MOT Testing</a></li>
-            <li><a href="/dpf-cleaning-service/">DPF Deep Cleaning</a></li>
-            <li><a href="/services/">Full & Interim Servicing</a></li>
-            <li><a href="/services/">Brake Repairs & Discs</a></li>
-            <li><a href="/services/">Exhausts & Welding</a></li>
-            <li><a href="/services/">Engine Diagnostics</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-title">Visit Our Garage</h4>
-          <p style="margin-bottom: 12px; font-size: 0.95rem;">
-            📍 <strong>161 Rolfe Street</strong><br>
-            Smethwick, Birmingham B66 2AU
-          </p>
-          <p style="margin-bottom: 12px; font-size: 0.95rem;">
-            📞 <a href="tel:01215589215" style="color: var(--color-primary); font-weight: 700;">(0121) 558 9215</a>
-          </p>
-          <p style="font-size: 0.95rem;">
-            🕒 <strong>Open Everyday:</strong> 9:00 AM – 6:00 PM
-          </p>
-        </div>
-      </div>
+    <div class="container footer-nav-wrap">
+      <ul class="footer-nav-list">
+        <li><a href="/">Home</a></li>
+        <li><a href="/aboutus/">About Us</a></li>
+        <li><a href="/dpf-cleaning-service/">DPF Cleaning Service</a></li>
+        <li><a href="/services/">Services</a></li>
+        <li><a href="/contactus/">Contact Us</a></li>
+      </ul>
     </div>
-
-    <div class="footer-bottom">
+    <div class="footer-bottom-bar">
       <div class="container footer-bottom-inner">
-        <div>
-          &copy; 2026 <strong>BK MOT Centre Ltd</strong>. All Rights Reserved. Smethwick, Birmingham UK.
-        </div>
-        <div>
-          Optimized for Cloudflare Pages • Fast, Secure & Green
-        </div>
+        <span class="footer-copyright">&copy; 2026 BK MOT Centre Ltd. All Rights Reserved. 161 Rolfe Street, Smethwick, Birmingham B66 2AU</span>
+        <a href="#main-content" class="footer-rss-icon" aria-label="Back to top">
+          <span>⬆ Top</span>
+        </a>
       </div>
     </div>
   </footer>
 
-  <!-- Sticky Mobile Bottom Bar -->
-  <div class="mobile-fixed-bar">
-    <div class="mobile-fixed-grid">
-      <a href="tel:01215589215" class="btn btn-dark" style="font-size: 1rem; padding: 10px 14px;">
-        📞 Call Garage
-      </a>
-      <a href="/contactus/" class="btn btn-primary" style="font-size: 1rem; padding: 10px 14px;">
-        📅 Book MOT
-      </a>
-    </div>
-  </div>
+  <!-- Sticky Mobile Action Bar -->
+  <aside class="mobile-sticky-action-bar" aria-label="Mobile quick actions">
+    <a href="tel:01215589215" class="mobile-sticky-btn mobile-call-btn">
+      <span>📞</span> Call 0121 558 9215
+    </a>
+    <a href="/contactus/" class="mobile-sticky-btn mobile-book-btn">
+      <span>📅</span> Book Appointment
+    </a>
+  </aside>
 
   <script src="/js/main.js"></script>
 </body>
