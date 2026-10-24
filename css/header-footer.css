@@ -206,45 +206,51 @@
 
 .mobile-nav-toggle {
   display: none;
-  background-color: #021827;
-  border: 1.5px solid #021827;
+  background: transparent;
+  border: none;
   cursor: pointer;
-  padding: 8px;
+  padding: 6px;
   width: 44px;
   height: 44px;
   position: relative;
-  border-radius: 8px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none;
   z-index: 1001;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-nav-toggle:hover,
 .mobile-nav-toggle:focus-visible {
-  background-color: #f71635;
-  border-color: #f71635;
-  transform: scale(1.04);
+  background: transparent;
   outline: none;
+}
+
+.mobile-nav-toggle:hover .hamburger-line,
+.mobile-nav-toggle:focus-visible .hamburger-line {
+  background-color: #f71635;
 }
 
 .hamburger-line {
   display: block;
-  width: 22px;
+  width: 26px;
   height: 3px;
-  margin: 4.5px auto;
-  background-color: #ffffff;
-  border-radius: 2px;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, background-color 0.2s ease;
+  background-color: #021827;
+  border-radius: 3px;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, background-color 0.25s ease;
 }
 
-/* Hamburger to X Transformation when expanded */
+/* Hamburger to X Transformation when expanded - Lines become Red (#f71635) */
 .mobile-nav-toggle[aria-expanded="true"] {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.mobile-nav-toggle[aria-expanded="true"] .hamburger-line {
   background-color: #f71635;
-  border-color: #f71635;
 }
 
 .mobile-nav-toggle[aria-expanded="true"] .hamburger-line:nth-child(1) {
-  transform: translateY(7.5px) rotate(45deg);
+  transform: translateY(8px) rotate(45deg);
 }
 
 .mobile-nav-toggle[aria-expanded="true"] .hamburger-line:nth-child(2) {
@@ -253,7 +259,7 @@
 }
 
 .mobile-nav-toggle[aria-expanded="true"] .hamburger-line:nth-child(3) {
-  transform: translateY(-7.5px) rotate(-45deg);
+  transform: translateY(-8px) rotate(-45deg);
 }
 
 /* ==========================================================================
@@ -389,6 +395,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 5px;
   }
   .site-nav {
     position: fixed;
