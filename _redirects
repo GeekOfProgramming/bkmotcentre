@@ -1,10 +1,9 @@
-# Clean URL routing for Cloudflare Pages
+# Cloudflare Pages Redirects & Canonical Clean URLs
+# Now that pages are organized into directories (/aboutus/index.html, etc.),
+# Cloudflare Pages automatically serves the directory's index.html.
+# These 301 redirects ensure any legacy .html requests smoothly redirect to clean URLs:
 
-/aboutus               /aboutus.html               200
-/aboutus/              /aboutus.html               200
-/services              /services.html              200
-/services/             /services.html              200
-/dpf-cleaning-service  /dpf-cleaning-service.html  200
-/dpf-cleaning-service/ /dpf-cleaning-service.html  200
-/contactus             /contactus.html             200
-/contactus/            /contactus.html             200
+/aboutus.html               /aboutus/               301
+/services.html              /services/              301
+/dpf-cleaning-service.html  /dpf-cleaning-service/  301
+/contactus.html             /contactus/             301
