@@ -346,49 +346,30 @@
 }
 
 .about-overview-img-col {
-  margin-left: -5vw;
+  margin-left: 0;
+  display: flex;
+  justify-content: center;
 }
 
 .mot-sign-card {
   position: relative;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.14);
+  max-width: 500px;
+  width: 100%;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .mot-sign-img {
   width: 100%;
-  max-width: 580px;
   height: auto;
+  max-height: 540px;
+  object-fit: contain;
   display: block;
-}
-
-.mot-experience-ribbon {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background: rgba(2, 24, 39, 0.9);
-  backdrop-filter: blur(8px);
-  color: #ffffff;
-  padding: 12px 18px;
-  border-radius: 4px;
-  border-left: 4px solid #f71635;
-  display: flex;
-  flex-direction: column;
-}
-
-.mot-experience-ribbon strong {
-  font-family: 'Khand', sans-serif;
-  font-size: 26px;
-  line-height: 1;
-  color: #ffffff;
-}
-
-.mot-experience-ribbon span {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #cbd5e1;
 }
 
 .about-overview-title {
