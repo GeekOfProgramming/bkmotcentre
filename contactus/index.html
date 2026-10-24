@@ -122,21 +122,36 @@
         <div class="contact-info-col">
           
           <div class="contact-giant-heading-wrap">
+            <div class="contact-badge-eyebrow">Get In Touch</div>
             <h1 class="contact-giant-title">CONTACT<br>US</h1>
             <div class="contact-red-divider" aria-hidden="true"></div>
           </div>
 
           <div class="contact-address-block">
-            <p class="contact-address-lines">
-              161 Rolfe Street, Smethwick<br>
-              Birmingham, B66 2AU<br>
-              <span class="contact-hours-highlight">Open Everyday: 9am – 6pm</span>
-            </p>
+            <div class="contact-address-card">
+              <span class="contact-loc-pin" aria-hidden="true">📍</span>
+              <p class="contact-address-lines">
+                161 Rolfe Street, Smethwick<br>
+                Birmingham, B66 2AU<br>
+                <span class="contact-hours-highlight">
+                  <span class="live-dot" aria-hidden="true"></span> Open Everyday: 9am – 6pm
+                </span>
+              </p>
+            </div>
           </div>
 
           <div class="contact-phone-callout">
             <span class="contact-big-phone-icon" aria-hidden="true">📞</span>
             <a href="tel:01215589215" class="contact-big-phone-number">(0121) 558 9215</a>
+          </div>
+
+          <div class="contact-quick-actions">
+            <a href="https://maps.google.com/?q=BK+MOT+Centre+Ltd+161+Rolfe+Street+Smethwick" target="_blank" rel="noopener noreferrer" class="contact-direction-btn">
+              <span>🗺️</span> Get Directions
+            </a>
+            <a href="tel:01215589215" class="contact-call-now-btn">
+              <span>⚡</span> Fast Response
+            </a>
           </div>
 
         </div>
@@ -145,14 +160,18 @@
         <div class="contact-form-col">
           <div class="contact-blue-form-card">
             
-            <h2 class="contact-form-title">SEND A MESSAGE</h2>
+            <div class="contact-form-header">
+              <span class="form-badge">Online Inquiry</span>
+              <h2 class="contact-form-title">SEND A MESSAGE</h2>
+              <p class="contact-form-subtext">Fill out your details below and our team will get back to you promptly.</p>
+            </div>
 
             <form class="contact-form-inner" id="contact-page-form" method="POST" action="/contactus/">
               
               <!-- Name Input -->
               <div class="contact-field-group">
                 <label for="contact-name" class="visually-hidden">Name</label>
-                <input type="text" id="contact-name" name="name" class="contact-input" placeholder="Name" required>
+                <input type="text" id="contact-name" name="name" class="contact-input" placeholder="Your Full Name" required>
               </div>
 
               <!-- Email and Phone in 2 Columns -->
@@ -171,27 +190,27 @@
               <div class="contact-field-group">
                 <label for="contact-service" class="visually-hidden">Service required</label>
                 <select id="contact-service" name="service" class="contact-select" required>
-                  <option value="" disabled selected>Service required</option>
-                  <option value="MOT">MOT</option>
-                  <option value="DPF Cleaning">DPF Cleaning</option>
-                  <option value="Car Servicing">Car Servicing</option>
-                  <option value="Car Diagnosis">Car Diagnosis</option>
-                  <option value="Engine repair">Engine repair</option>
-                  <option value="Tyre change">Tyre change</option>
-                  <option value="Other">Other</option>
+                  <option value="" disabled selected>Select service required...</option>
+                  <option value="MOT">MOT Inspection</option>
+                  <option value="DPF Cleaning">DPF Cleaning Service</option>
+                  <option value="Car Servicing">Full / Interim Car Servicing</option>
+                  <option value="Car Diagnosis">Diagnostic Check</option>
+                  <option value="Engine repair">Engine &amp; Mechanical Repair</option>
+                  <option value="Brakes & Suspension">Brakes &amp; Suspension</option>
+                  <option value="Other">Other Repairs / General Inquiry</option>
                 </select>
               </div>
 
               <!-- Message Textarea -->
               <div class="contact-field-group">
                 <label for="contact-message" class="visually-hidden">Message</label>
-                <textarea id="contact-message" name="message" class="contact-textarea" rows="4" placeholder="Message" required></textarea>
+                <textarea id="contact-message" name="message" class="contact-textarea" rows="4" placeholder="How can we assist you with your vehicle?" required></textarea>
               </div>
 
               <!-- Submit Button -->
               <div class="contact-submit-wrap">
                 <button type="submit" class="skewed-btn transparent-outline-btn contact-submit-btn">
-                  Submit <span class="btn-arrow-icon">&gt;</span>
+                  Send Message <span class="btn-arrow-icon">&gt;</span>
                 </button>
               </div>
 
@@ -204,6 +223,10 @@
 
       <!-- Google Maps Embed Row -->
       <div class="contact-map-row">
+        <div class="contact-map-header">
+          <h3 class="contact-map-title">Visit Our Workshop</h3>
+          <p class="contact-map-desc">Centrally located on Rolfe Street, Smethwick with convenient access and free customer parking.</p>
+        </div>
         <div class="contact-map-frame">
           <iframe 
             src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d9715.996947034015!2d-1.9638392!3d52.4972534!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x6c27dea447ec315b!2sBK%20MOT%20Centre%20Ltd!5e0!3m2!1sen!2suk!4v1572884916552!5m2!1sen!2suk" 
