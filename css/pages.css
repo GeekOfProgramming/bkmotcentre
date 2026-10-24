@@ -412,10 +412,22 @@
 .about-overview-body p {
   font-family: 'Open Sans', 'Inter', sans-serif;
   font-size: 15px;
-  font-weight: 600;
-  line-height: 2.1;
-  color: #333333;
-  margin-bottom: 24px;
+  font-weight: 500;
+  line-height: 1.95;
+  color: #334155;
+  margin-bottom: 18px;
+}
+
+.about-overview-body strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.about-lead-text {
+  font-size: 16.5px !important;
+  line-height: 1.85 !important;
+  color: #1e293b !important;
+  font-weight: 600 !important;
 }
 
 .about-cta-action {
@@ -879,6 +891,7 @@
   /* Section 3: About Overview */
   .about-overview-section {
     padding: 70px 0;
+    background-image: none !important; /* Remove dark mechanic-35 graphic on tablet/mobile so text never overlaps */
   }
   .about-overview-grid {
     grid-template-columns: 1fr;
@@ -899,9 +912,16 @@
   .red-double-divider {
     margin: 0 auto 20px;
   }
+  .about-overview-text-col {
+    background-color: #ffffff;
+    padding: 36px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    max-width: 700px;
+    margin: 0 auto;
+  }
   .about-overview-body p {
-    text-align: justify;
-    text-justify: inter-word;
+    text-align: left;
   }
   .about-cta-action {
     display: flex;
@@ -1070,8 +1090,12 @@
   }
 
   /* About BK MOT Section */
+  .about-overview-text-col {
+    padding: 26px 18px;
+    border-radius: 8px;
+  }
   .about-overview-title {
-    font-size: 40px;
+    font-size: 38px;
   }
   .mot-sign-card {
     border-radius: 6px;
@@ -1087,10 +1111,14 @@
   .mot-experience-ribbon span {
     font-size: 10px;
   }
+  .about-lead-text {
+    font-size: 15px !important;
+  }
   .about-overview-body p {
-    font-size: 14.5px;
-    line-height: 1.85;
+    font-size: 14px;
+    line-height: 1.8;
     text-align: left;
+    margin-bottom: 14px;
   }
   .about-cta-action .skewed-btn {
     width: 100%;
