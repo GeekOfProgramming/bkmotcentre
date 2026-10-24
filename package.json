@@ -1,0 +1,14 @@
+{
+  "name": "bkmotcentre",
+  "version": "1.0.0",
+  "description": "BK MOT Centre Ltd Web Platform",
+  "scripts": {
+    "dev": "npx live-server --port=3000 --open=index.html",
+    "start": "npx live-server --port=3000 --open=index.html",
+    "preview": "python -m http.server 3000",
+    "pages:dev": "npx wrangler pages dev ."
+  },
+  "keywords": ["mot", "garage", "bkmotcentre", "cloudflare-pages"],
+  "author": "BK MOT Centre Ltd",
+  "license": "ISC"
+}
