@@ -1,0 +1,14 @@
+# OS Files
+Thumbs.db
+.DS_Store
+
+# Editor & Temp
+.vscode/
+.idea/
+*.log
+
+# Cloudflare Wrangler & Node
+.wrangler/
+node_modules/
+dist/
+.output/

@@ -1,0 +1,10 @@
+# Clean URL routing for Cloudflare Pages
+
+/aboutus               /aboutus.html               200
+/aboutus/              /aboutus.html               200
+/services              /services.html              200
+/services/             /services.html              200
+/dpf-cleaning-service  /dpf-cleaning-service.html  200
+/dpf-cleaning-service/ /dpf-cleaning-service.html  200
+/contactus             /contactus.html             200
+/contactus/            /contactus.html             200
