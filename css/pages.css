@@ -2430,3 +2430,330 @@
   }
 }
 
+/* ==========================================================================
+   CONTACT US PAGE SPECIFIC STYLES
+   Pixel-accurate matching with screencapture-bkmotcentreltd-co-uk-contactus
+   1. Diagonal split background: linear-gradient(-67deg, #eaeaf1 20%, #ffffff 0%)
+   2. Left: Giant "CONTACT US" (italic, Khand, ~7-8vw), Red divider (40px x 4px),
+      Address text, and Large Callout Phone (italic Khand, 55px, red #f71635)
+   3. Right: Solid Royal Blue Card (#0251b8) with "SEND A MESSAGE", 
+      white underline inputs, 2-column email/phone, select dropdown, and outline button
+   4. Full-width Google Maps iframe
+   5. Bottom 3 Action Cards (DPF, Booking, Contact)
+   ========================================================================== */
+
+.contact-page {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  overflow-x: hidden;
+}
+
+.contact-main-section {
+  position: relative;
+  background-color: #eaeaf1;
+  background-image: linear-gradient(-67deg, #eaeaf1 22%, #ffffff 0%);
+  padding: 40px 0 100px 0;
+  overflow: hidden;
+}
+
+.contact-top-row {
+  width: 90%;
+  max-width: 1800px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Left Column: Heading, Address, Big Phone */
+.contact-info-col {
+  padding-left: 2vw;
+}
+
+.contact-giant-heading-wrap {
+  margin-bottom: 30px;
+}
+
+.contact-giant-title {
+  font-family: 'Khand', sans-serif;
+  font-size: 7.5vw;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  color: #1a1a1a;
+  margin: 0 0 20px 0;
+  transform: skewX(-6deg);
+  transform-origin: left;
+}
+
+.contact-red-divider {
+  width: 44px;
+  height: 4px;
+  background-color: #f71635;
+  margin-bottom: 24px;
+}
+
+.contact-address-block {
+  margin-bottom: 35px;
+}
+
+.contact-address-lines {
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.8;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.contact-hours-highlight {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2b303a;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.contact-phone-callout {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.contact-big-phone-icon {
+  font-size: 40px;
+  color: #f71635;
+  line-height: 1;
+}
+
+.contact-big-phone-number {
+  font-family: 'Khand', sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  font-style: italic;
+  color: #f71635;
+  text-decoration: none;
+  letter-spacing: 1px;
+  line-height: 1;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  display: inline-block;
+}
+
+.contact-big-phone-number:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* Right Column: Solid Royal Blue Card (#0251b8) */
+.contact-form-col {
+  position: relative;
+  z-index: 10;
+}
+
+.contact-blue-form-card {
+  background-color: #0251b8;
+  color: #ffffff;
+  padding: 60px 48px;
+  box-shadow: 0 25px 60px rgba(2, 81, 184, 0.28), 0 15px 35px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.contact-form-title {
+  font-family: 'Khand', sans-serif;
+  font-size: 60px;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.1;
+  color: #ffffff;
+  margin: 0 0 35px 0;
+  letter-spacing: 0.02em;
+}
+
+.contact-form-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.contact-field-group {
+  position: relative;
+  width: 100%;
+}
+
+.contact-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* White underline border inputs matching Divi style */
+.contact-input,
+.contact-select,
+.contact-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 0;
+  padding: 12px 0;
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.contact-input::placeholder,
+.contact-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.contact-input:focus,
+.contact-select:focus,
+.contact-textarea:focus {
+  border-bottom-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.contact-select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffffff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.contact-select option {
+  background-color: #021827;
+  color: #ffffff;
+}
+
+.contact-textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.contact-submit-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.contact-submit-btn {
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  background-color: transparent;
+  color: #ffffff;
+  padding: 12px 30px;
+  font-family: 'Open Sans', 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.25s ease;
+}
+
+.contact-submit-btn:hover {
+  background-color: #f71635;
+  border-color: #f71635;
+  color: #ffffff;
+}
+
+/* Map Row */
+.contact-map-row {
+  width: 90%;
+  max-width: 1800px;
+  margin: 60px auto 0 auto;
+}
+
+.contact-map-frame {
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border: 4px solid #ffffff;
+}
+
+.contact-map-frame iframe {
+  display: block;
+  width: 100%;
+}
+
+/* Responsive Adaptations for Contact Page */
+@media (max-width: 1100px) {
+  .contact-giant-title {
+    font-size: 80px;
+  }
+  .contact-form-title {
+    font-size: 48px;
+  }
+}
+
+@media (max-width: 980px) {
+  .contact-main-section {
+    background-image: none;
+    background-color: #eaeaf1;
+    padding: 40px 0 60px 0;
+  }
+  .contact-top-row {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 50px;
+  }
+  .contact-info-col {
+    padding-left: 0;
+  }
+  .contact-giant-title {
+    font-size: 64px;
+    transform: none;
+  }
+  .contact-red-divider {
+    margin: 0 auto 20px auto;
+  }
+  .contact-phone-callout {
+    justify-content: center;
+  }
+  .contact-big-phone-number {
+    font-size: 42px;
+  }
+  .contact-blue-form-card {
+    padding: 40px 24px;
+    margin: 0 auto;
+    max-width: 650px;
+    text-align: left;
+  }
+  .contact-submit-wrap {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .contact-field-row {
+    grid-template-columns: 1fr;
+  }
+  .contact-giant-title {
+    font-size: 46px;
+  }
+  .contact-address-lines {
+    font-size: 18px;
+  }
+  .contact-hours-highlight {
+    font-size: 16px;
+  }
+  .contact-big-phone-number {
+    font-size: 32px;
+  }
+  .contact-form-title {
+    font-size: 36px;
+  }
+  body.contact-page {
+    padding-bottom: 60px;
+  }
+}
+
