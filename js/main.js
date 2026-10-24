@@ -97,23 +97,31 @@ function initOpeningStatus() {
  * FAQ Accordion for DPF Cleaning page
  */
 function initFaqAccordion() {
-  const faqItems = document.querySelectorAll('.faq-item');
+  const faqItems = document.querySelectorAll('.faq-item, .dpf-accordion-item');
   if (!faqItems.length) return;
 
   faqItems.forEach((item) => {
-    const question = item.querySelector('.faq-question');
+    const question = item.querySelector('.faq-question, .dpf-accordion-header');
     if (!question) return;
 
     question.addEventListener('click', () => {
       const isActive = item.classList.contains('active');
 
-      // Close all other items
-      faqItems.forEach((other) => {
-        if (other !== item) other.classList.remove('active');
+      // Close all other items in same accordion
+      const parentAccordion = item.closest('.faq-accordion, .dpf-accordion');
+      const siblings = parentAccordion ? parentAccordion.querySelectorAll('.faq-item, .dpf-accordion-item') : faqItems;
+
+      siblings.forEach((other) => {
+        if (other !== item) {
+          other.classList.remove('active');
+          const header = other.querySelector('.faq-question, .dpf-accordion-header');
+          if (header) header.setAttribute('aria-expanded', 'false');
+        }
       });
 
       // Toggle clicked item
       item.classList.toggle('active', !isActive);
+      question.setAttribute('aria-expanded', !isActive ? 'true' : 'false');
     });
   });
 }
