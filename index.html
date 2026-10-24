@@ -51,8 +51,9 @@
     "priceRange": "££"
   }
   </script>
-</head>
 <body>
+  <!-- Keyboard Accessibility Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <!-- Top Contact Bar -->
   <aside class="top-bar" aria-label="Quick contact and opening hours">
@@ -110,34 +111,35 @@
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero-section">
-    <div class="container hero-grid">
-      <div class="hero-content">
-        <span class="hero-tagline">Smethwick, Birmingham • Est. 40+ Years</span>
-        <h1 class="hero-title">
-          BK.<br>
-          <span>MOT.</span><br>
-          CENTRE.
-        </h1>
-        <p class="hero-phone-callout">
-          Fast, Reliable & Honest Automotive Care.<br>
-          Call us today on <a href="tel:01215589215"><strong>0121 558 9215</strong></a>
-        </p>
-        <div class="hero-cta-group">
-          <a href="contactus.html" class="btn btn-primary btn-arrow">Book Appointment</a>
-          <a href="services.html" class="btn btn-outline">Explore All Services</a>
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="hero-tagline">Smethwick, Birmingham • Est. 40+ Years</span>
+          <h1 class="hero-title">
+            BK.<br>
+            <span>MOT.</span><br>
+            CENTRE.
+          </h1>
+          <p class="hero-phone-callout">
+            Fast, Reliable & Honest Automotive Care.<br>
+            Call us today on <a href="tel:01215589215"><strong>0121 558 9215</strong></a>
+          </p>
+          <div class="hero-cta-group">
+            <a href="contactus.html" class="btn btn-primary btn-arrow">Book Appointment</a>
+            <a href="services.html" class="btn btn-outline">Explore All Services</a>
+          </div>
         </div>
-      </div>
 
-      <div class="hero-visual">
-        <div class="hero-mechanics-wrap">
-          <img src="assets/images/mechanic-59.png" alt="BK MOT Centre Mechanic" class="hero-mechanic-img" width="400" height="490">
-          <img src="assets/images/mechanic-57-1.png" alt="BK MOT Technician" class="hero-mechanic-secondary" width="220" height="340">
+        <div class="hero-visual">
+          <div class="hero-mechanics-wrap">
+            <img src="assets/images/mechanic-59.png" alt="BK MOT Centre Mechanic" class="hero-mechanic-img" width="400" height="490" fetchpriority="high">
+            <img src="assets/images/mechanic-57-1.png" alt="BK MOT Technician" class="hero-mechanic-secondary" width="220" height="340" fetchpriority="high">
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
   <!-- 8 Quick Services Grid -->
   <section class="quick-services-section">
@@ -216,7 +218,7 @@
   <section class="about-split-section">
     <div class="container about-split-grid">
       <div class="about-img-frame">
-        <img src="assets/images/AdobeStock_273378961.jpg" alt="Engine bay service at BK MOT Centre" width="600" height="400">
+        <img src="assets/images/AdobeStock_273378961.jpg" alt="Engine bay service at BK MOT Centre" width="600" height="400" loading="lazy">
         <div class="about-experience-badge">
           <div class="about-experience-years">40+</div>
           <div class="about-experience-text">Years Industry Experience</div>
@@ -371,7 +373,7 @@
   <section class="guarantee-section">
     <div class="container guarantee-grid">
       <div class="guarantee-visual">
-        <img src="assets/images/mechanic-67.png" alt="BK MOT technician servicing vehicle wheel" width="380" height="380">
+        <img src="assets/images/mechanic-67.png" alt="BK MOT technician servicing vehicle wheel" width="380" height="380" loading="lazy">
       </div>
       <div class="quote-box">
         <img src="assets/images/quote-2.png" alt="Quote" class="quote-icon">
@@ -425,6 +427,7 @@
 
     </div>
   </section>
+  </main>
 
   <!-- Site Footer -->
   <footer class="site-footer">

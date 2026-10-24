@@ -1,0 +1,171 @@
+/* ==========================================================================
+   BK MOT CENTRE LTD - Base & Accessibility Reset
+   Compliant with Vercel Web Interface Guidelines
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  color-scheme: light dark;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text-main);
+  background-color: var(--color-bg-white);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Keyboard Skip Link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 20px;
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  z-index: 9999;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: 15px;
+}
+
+/* Accessible Image Defaults (Prevent Layout Shifts) */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/* Touch & Interaction: Prevent double-tap zoom delay */
+button, a, input, select, textarea, .faq-question {
+  touch-action: manipulation;
+  font: inherit;
+}
+
+/* Focus States: Explicit focus-visible ring for keyboard users, never bare outline: none */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Honor prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Typography Hierarchy with text-wrap: balance */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-text-main);
+  text-wrap: balance;
+  scroll-margin-top: 100px;
+}
+
+.text-white {
+  color: var(--color-text-light) !important;
+}
+
+.text-primary {
+  color: var(--color-primary) !important;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Section Spacing */
+.section-pad {
+  padding: 80px 0;
+}
+
+.section-pad-sm {
+  padding: 50px 0;
+}
+
+.section-header {
+  margin-bottom: 40px;
+}
+
+.section-header.text-center {
+  text-align: center;
+}
+
+.section-subtitle {
+  color: var(--color-primary);
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+.section-title-divider {
+  width: 60px;
+  height: 4px;
+  background-color: var(--color-primary);
+  margin-bottom: 24px;
+}
+
+.section-title-divider.center {
+  margin-left: auto;
+  margin-right: auto;
+}

@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Keyboard Accessibility Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <!-- Top Contact Bar -->
   <aside class="top-bar" aria-label="Quick contact and opening hours">
@@ -66,6 +68,8 @@
       </button>
     </div>
   </header>
+
+  <main id="main-content">
 
   <!-- Page Hero -->
   <section class="page-hero" style="background-image: url('assets/images/AdobeStock_71143570.jpeg');">
@@ -154,30 +158,30 @@
             Fill in the details below and we will get back to you promptly with confirmation and availability.
           </p>
 
-          <div id="form-feedback" class="form-message"></div>
+          <div id="form-feedback" class="form-message" aria-live="polite"></div>
 
           <form id="contact-form">
             <div class="form-group">
               <label for="contact-name" class="form-label">Full Name *</label>
-              <input type="text" id="contact-name" name="name" class="form-control" placeholder="e.g. John Smith" required>
+              <input type="text" id="contact-name" name="name" class="form-control" placeholder="e.g. John Smith…" autocomplete="name" required>
             </div>
 
             <div class="form-row">
               <div class="form-group">
                 <label for="contact-email" class="form-label">Email Address</label>
-                <input type="email" id="contact-email" name="email" class="form-control" placeholder="john@example.com">
+                <input type="email" id="contact-email" name="email" class="form-control" placeholder="john@example.com…" autocomplete="email" inputmode="email" spellcheck="false">
               </div>
 
               <div class="form-group">
                 <label for="contact-phone" class="form-label">Phone Number *</label>
-                <input type="tel" id="contact-phone" name="phone" class="form-control" placeholder="07123 456789" required>
+                <input type="tel" id="contact-phone" name="phone" class="form-control" placeholder="07123 456789…" autocomplete="tel" inputmode="tel" required>
               </div>
             </div>
 
             <div class="form-group">
               <label for="contact-service" class="form-label">Service Required *</label>
               <select id="contact-service" name="service" class="form-control" required>
-                <option value="">Select a service...</option>
+                <option value="">Select a service…</option>
                 <option value="MOT Testing">MOT Testing</option>
                 <option value="Car Servicing (Full/Interim)">Car Servicing (Full or Interim)</option>
                 <option value="DPF Cleaning Service">DPF Cleaning Service</option>
@@ -192,7 +196,7 @@
 
             <div class="form-group">
               <label for="contact-message" class="form-label">Message / Vehicle Details (Make, Model, Year)</label>
-              <textarea id="contact-message" name="message" rows="4" class="form-control" placeholder="Let us know your car registration or any specific issues you are experiencing..."></textarea>
+              <textarea id="contact-message" name="message" rows="4" class="form-control" placeholder="Let us know your car registration or any specific issues you are experiencing…"></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary btn-arrow" style="width: 100%;">
@@ -252,6 +256,7 @@
       </div>
     </div>
   </section>
+  </main>
 
   <!-- Site Footer -->
   <footer class="site-footer">
