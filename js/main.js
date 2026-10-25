@@ -3,13 +3,32 @@
  * Lightweight, zero-dependency, works directly in any browser & Cloudflare Pages
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  initMobileNav();
-  initOpeningStatus();
-  initFaqAccordion();
-  initContactForm();
-  initQuotesSlider();
-});
+function initAll() {
+  safeInit('mobileNav', initMobileNav);
+  safeInit('openingStatus', initOpeningStatus);
+  safeInit('faqAccordion', initFaqAccordion);
+  safeInit('contactForm', initContactForm);
+  safeInit('quotesSlider', initQuotesSlider);
+}
+
+function safeInit(name, fn) {
+  try {
+    fn();
+  } catch (err) {
+    if (typeof console !== 'undefined' && console.error) {
+      console.error(`[BK MOT] Failed to initialize ${name}:`, err);
+    }
+  }
+}
+
+// Ensure execution whether loaded synchronously, deferred, or via Rocket Loader
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
+  }
+}
 
 /**
  * Mobile Navigation Toggle
@@ -130,13 +149,23 @@ function initFaqAccordion() {
  * Contact & Booking Form Submission (Cloudflare Workers API + Resend integration)
  */
 function initContactForm() {
-  const form = document.getElementById('contact-form') || document.getElementById('contact-page-form');
+  const form = document.getElementById('contact-form') || 
+               document.getElementById('contact-page-form') || 
+               document.querySelector('form.contact-form-inner') ||
+               document.querySelector('form[action="/api/contact"]');
   const messageBox = document.getElementById('form-feedback');
 
   if (!form) return;
 
+  // Prevent duplicate event listener registration
+  if (form.dataset.contactFormBound === 'true') return;
+  form.dataset.contactFormBound = 'true';
+
   form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    // 1. Immediately prevent native form submission / document navigation
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
 
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Send Message';
@@ -314,4 +343,15 @@ function initQuotesSlider() {
   }
 
   startAutoplay();
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    initAll,
+    initContactForm,
+    initMobileNav,
+    initOpeningStatus,
+    initFaqAccordion,
+    initQuotesSlider
+  };
 }

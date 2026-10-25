@@ -6,10 +6,20 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const COMPONENTS_DIR = path.join(ROOT_DIR, 'components');
 const SRC_PAGES_DIR = path.join(ROOT_DIR, 'src', 'pages');
+
+function getAssetHash(filePath) {
+  try {
+    const data = fs.readFileSync(filePath);
+    return crypto.createHash('md5').update(data).digest('hex').slice(0, 8);
+  } catch {
+    return '1.0.0';
+  }
+}
 
 const PAGES_CONFIG = [
   { src: 'index.html', dest: 'index.html', active: 'home' },
@@ -63,6 +73,12 @@ function buildPage(page) {
   content = content.replace(/<!--\s*@include:\s*header\s*-->/g, headerHtml);
   // Inject footer component
   content = content.replace(/<!--\s*@include:\s*footer\s*-->/g, footerHtml);
+
+  // Asset Cache Versioning: append content hash to JS and CSS assets to prevent stale browser caching
+  const jsHash = getAssetHash(path.join(ROOT_DIR, 'js', 'main.js'));
+  const cssHash = getAssetHash(path.join(ROOT_DIR, 'css', 'style.css'));
+  content = content.replace(/(["'])\/js\/main\.js(?:\?[^"']*)?\1/g, `$1/js/main.js?v=${jsHash}$1`);
+  content = content.replace(/(["'])\/css\/style\.css(?:\?[^"']*)?\1/g, `$1/css/style.css?v=${cssHash}$1`);
 
   // Ensure dest directory exists
   const destDir = path.dirname(destPath);
