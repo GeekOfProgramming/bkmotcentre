@@ -168,18 +168,30 @@ async function sendViaResend({ apiKey, fromEmail, toEmail, replyTo, subject, htm
   }
 }
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+  'Surrogate-Control': 'no-store'
+};
+
 /**
  * Main POST Request Handler
  */
 export async function onRequestPost(context) {
   const { request, env } = context;
   const corsHeaders = getCorsHeaders(request);
+  const responseHeaders = {
+    'Content-Type': 'application/json',
+    ...corsHeaders,
+    ...NO_CACHE_HEADERS
+  };
 
   // 1. Origin Verification
   if (!isAllowedOrigin(request)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Untrusted origin request rejected.' }),
-      { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 403, headers: responseHeaders }
     );
   }
 
@@ -188,7 +200,7 @@ export async function onRequestPost(context) {
   if (!contentType.toLowerCase().includes('application/json')) {
     return new Response(
       JSON.stringify({ success: false, error: 'Invalid Content-Type. application/json required.' }),
-      { status: 415, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 415, headers: responseHeaders }
     );
   }
 
@@ -199,14 +211,14 @@ export async function onRequestPost(context) {
     if (textBody.length > MAX_PAYLOAD_BYTES) {
       return new Response(
         JSON.stringify({ success: false, error: 'Payload exceeds maximum permitted size.' }),
-        { status: 413, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        { status: 413, headers: responseHeaders }
       );
     }
     body = JSON.parse(textBody);
   } catch (parseErr) {
     return new Response(
       JSON.stringify({ success: false, error: 'Malformed JSON payload.' }),
-      { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 400, headers: responseHeaders }
     );
   }
 
@@ -222,61 +234,72 @@ export async function onRequestPost(context) {
   if (!name || name.length < 2 || name.length > 100) {
     return new Response(
       JSON.stringify({ success: false, error: 'Please enter a valid full name (2 to 100 characters).' }),
-      { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 400, headers: responseHeaders }
     );
   }
 
   if (!isValidPhone(phone)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Please provide a valid phone number (7 to 15 digits).' }),
-      { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 400, headers: responseHeaders }
     );
   }
 
   if (email && (!isValidEmail(email) || email.length > 120)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Please enter a valid email address.' }),
-      { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 400, headers: responseHeaders }
     );
   }
 
   if (!service || !ALLOWED_SERVICES.includes(service)) {
     return new Response(
       JSON.stringify({ success: false, error: 'Please select a valid service option from the list.' }),
-      { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 400, headers: responseHeaders }
     );
   }
 
   if (!message || message.length < 5 || message.length > 2500) {
     return new Response(
       JSON.stringify({ success: false, error: 'Please provide a message description between 5 and 2500 characters.' }),
-      { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 400, headers: responseHeaders }
     );
   }
 
-  // 6. Cloudflare Turnstile Verification (Mandatory in production when configured)
-  const remoteIp = request.headers.get('CF-Connecting-IP') || '';
-  if (env && env.TURNSTILE_SECRET_KEY) {
-    if (!turnstileToken) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Security verification check is required before submitting.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
+  // 6. Reference Number (Telephone Reference - not an online tracking ticket)
+  const refId = 'BK-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1000).toString(36).toUpperCase();
 
-    const turnstileOutcome = await verifyTurnstile(turnstileToken, remoteIp, env.TURNSTILE_SECRET_KEY);
-    if (!turnstileOutcome.success) {
-      console.warn(`[Contact API] Security verification rejected: ${turnstileOutcome.error}`);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Security verification failed. Please refresh the page and try again.' }),
-        { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
+  // 7. Cloudflare Turnstile Verification (MANDATORY: Fail-closed in production)
+  const turnstileSecret = env && env.TURNSTILE_SECRET_KEY;
+  if (!turnstileSecret) {
+    console.error(`[Contact API] Ref: ${refId} | Missing mandatory TURNSTILE_SECRET_KEY in environment`);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Security verification service is temporarily unavailable. Please call our garage directly on 0121 558 9215.'
+      }),
+      { status: 503, headers: responseHeaders }
+    );
   }
 
-  // 7. Reference Number (Telephone Reference - not an online tracking ticket)
-  const refId = 'BK-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1000).toString(36).toUpperCase();
-  console.log(`[Contact API] Ref: ${refId} | Service: ${service} | Turnstile: ${Boolean(env && env.TURNSTILE_SECRET_KEY)} | IP: [Redacted]`);
+  if (!turnstileToken) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Security verification check is required before submitting.' }),
+      { status: 400, headers: responseHeaders }
+    );
+  }
+
+  const remoteIp = request.headers.get('CF-Connecting-IP') || '';
+  const turnstileOutcome = await verifyTurnstile(turnstileToken, remoteIp, turnstileSecret);
+  if (!turnstileOutcome.success) {
+    console.warn(`[Contact API] Ref: ${refId} | Security verification rejected: ${turnstileOutcome.error}`);
+    return new Response(
+      JSON.stringify({ success: false, error: 'Security verification failed. Please refresh the page and try again.' }),
+      { status: 403, headers: responseHeaders }
+    );
+  }
+
+  console.log(`[Contact API] Ref: ${refId} | Service: ${service} | Turnstile: Verified | IP: [Redacted]`);
 
   // 8. Fail-safe Environment Check
   const apiKey = env && env.RESEND_API_KEY;
@@ -290,7 +313,7 @@ export async function onRequestPost(context) {
         success: false,
         error: 'Online dispatch is undergoing scheduled maintenance. Please call our garage directly on 0121 558 9215 to book immediately.'
       }),
-      { status: 503, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 503, headers: responseHeaders }
     );
   }
 
@@ -416,7 +439,7 @@ Garage Telephone: 0121 558 9215
         success: false,
         error: 'Unable to deliver your enquiry right now. Please call us directly on 0121 558 9215.'
       }),
-      { status: 502, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 502, headers: responseHeaders }
     );
   }
 
@@ -428,6 +451,6 @@ Garage Telephone: 0121 558 9215
       ref: refId,
       message: `Thank you! Your enquiry has been received. Our team will contact you promptly to confirm your booking date and time. (Enquiry Ref: ${refId} — quote this if you call our garage on 0121 558 9215).`
     }),
-    { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+    { status: 200, headers: responseHeaders }
   );
 }
