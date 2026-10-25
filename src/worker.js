@@ -24,12 +24,15 @@ export default {
       }
 
       if (request.method === 'OPTIONS') {
+        const origin = request.headers.get('Origin') || 'https://bkmotcentre.uk';
         return new Response(null, {
           status: 204,
           headers: {
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': origin,
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type'
+            'Access-Control-Allow-Headers': 'Content-Type, Accept',
+            'Access-Control-Max-Age': '86400',
+            'Vary': 'Origin'
           }
         });
       }
