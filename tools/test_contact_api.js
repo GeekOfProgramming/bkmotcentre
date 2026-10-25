@@ -462,6 +462,196 @@ async function runAllTests() {
     assert.strictEqual(res.headers.get('Expires'), '0');
   });
 
+  // Test 20: Browser-level Integration Test - Form submission uses JSON fetch rather than document navigation
+  await runTest('Browser Integration: Valid form submission triggers application/json fetch and prevents navigation', async () => {
+    const inputs = {
+      'name': { value: 'John Smith', focus: () => {} },
+      'phone': { value: '01215589215', focus: () => {} },
+      'email': { value: 'john@example.com', focus: () => {} },
+      'service': { value: 'MOT', focus: () => {} },
+      'message': { value: 'Booking request for MOT test on Saturday', focus: () => {} },
+      'cf-turnstile-response': { value: 'test_token_cf_12345' }
+    };
+
+    let defaultPrevented = false;
+    let submitListener = null;
+    let formResetCalled = false;
+    let interceptedFetch = null;
+
+    const mockForm = {
+      id: 'contact-form',
+      dataset: {},
+      querySelector: (sel) => {
+        if (sel === 'button[type="submit"]') {
+          return { innerHTML: 'Send Message', disabled: false, setAttribute: () => {}, removeAttribute: () => {} };
+        }
+        if (sel === '.cf-turnstile') return {};
+        const match = sel.match(/\[name="([^"]+)"\]/);
+        if (match && inputs[match[1]]) return inputs[match[1]];
+        return null;
+      },
+      querySelectorAll: () => [],
+      addEventListener: (event, handler) => {
+        if (event === 'submit') submitListener = handler;
+      },
+      reset: () => { formResetCalled = true; }
+    };
+
+    const mockMessageBox = { textContent: '', className: '', style: {}, scrollIntoView: () => {} };
+
+    const originalDocument = global.document;
+    const originalFetch = global.fetch;
+
+    global.document = {
+      readyState: 'complete', // Test that even after DOMContentLoaded, listener attaches
+      getElementById: (id) => {
+        if (id === 'contact-form' || id === 'contact-page-form') return mockForm;
+        if (id === 'form-feedback') return mockMessageBox;
+        return null;
+      },
+      querySelector: (sel) => {
+        if (sel === 'form.contact-form-inner' || sel === 'form[action="/api/contact"]') return mockForm;
+        return null;
+      },
+      querySelectorAll: () => [],
+      addEventListener: (evt, cb) => {
+        if (evt === 'DOMContentLoaded') cb();
+      }
+    };
+
+    global.fetch = async (url, options) => {
+      interceptedFetch = { url, options, body: JSON.parse(options.body) };
+      return {
+        ok: true,
+        json: async () => ({ success: true, message: 'Enquiry received', ref: 'BK-1234' })
+      };
+    };
+
+    try {
+      const { initAll } = require('../js/main.js');
+      initAll();
+
+      assert.ok(submitListener, 'Submit listener must be attached to the form');
+
+      const mockEvent = {
+        preventDefault: () => { defaultPrevented = true; }
+      };
+
+      await submitListener(mockEvent);
+
+      // Verify defaultPrevented was called (no native browser navigation)
+      assert.strictEqual(defaultPrevented, true, 'Form submission MUST call e.preventDefault() to prevent native document navigation');
+
+      // Verify fetch was dispatched to /api/contact with application/json
+      assert.ok(interceptedFetch, 'Form submission MUST dispatch a fetch request');
+      assert.strictEqual(interceptedFetch.url, '/api/contact');
+      assert.strictEqual(interceptedFetch.options.method, 'POST');
+      assert.strictEqual(interceptedFetch.options.headers['Content-Type'], 'application/json');
+      assert.strictEqual(interceptedFetch.options.headers['Accept'], 'application/json');
+
+      // Verify JSON payload contents
+      assert.strictEqual(interceptedFetch.body.name, 'John Smith');
+      assert.strictEqual(interceptedFetch.body.phone, '01215589215');
+      assert.strictEqual(interceptedFetch.body.email, 'john@example.com');
+      assert.strictEqual(interceptedFetch.body.service, 'MOT');
+      assert.strictEqual(interceptedFetch.body.message, 'Booking request for MOT test on Saturday');
+      assert.strictEqual(interceptedFetch.body.turnstileToken, 'test_token_cf_12345');
+      assert.ok(interceptedFetch.body.timestamp);
+
+      // Verify form reset on success
+      assert.strictEqual(formResetCalled, true);
+    } finally {
+      global.document = originalDocument;
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 21: Browser Integration - Unsuccessful submission preserves user input
+  await runTest('Browser Integration: Unsuccessful submission preserves user inputs', async () => {
+    const inputs = {
+      'name': { value: 'Alice Preserved' },
+      'phone': { value: '01215589215' },
+      'email': { value: 'alice@test.uk' },
+      'service': { value: 'Car Servicing' },
+      'message': { value: 'My car needs urgent brake servicing' },
+      'cf-turnstile-response': { value: 'test_token' }
+    };
+
+    let formResetCalled = false;
+    let submitListener = null;
+
+    const mockForm = {
+      id: 'contact-form',
+      dataset: {},
+      querySelector: (sel) => {
+        if (sel === 'button[type="submit"]') {
+          return { innerHTML: 'Send', disabled: false, setAttribute: () => {}, removeAttribute: () => {} };
+        }
+        if (sel === '.cf-turnstile') return {};
+        const match = sel.match(/\[name="([^"]+)"\]/);
+        if (match && inputs[match[1]]) return inputs[match[1]];
+        return null;
+      },
+      querySelectorAll: () => [],
+      addEventListener: (event, handler) => {
+        if (event === 'submit') submitListener = handler;
+      },
+      reset: () => { formResetCalled = true; }
+    };
+
+    const mockMessageBox = { textContent: '', className: '', style: {}, scrollIntoView: () => {} };
+
+    const originalDocument = global.document;
+    const originalFetch = global.fetch;
+
+    global.document = {
+      readyState: 'complete',
+      getElementById: (id) => {
+        if (id === 'contact-form') return mockForm;
+        if (id === 'form-feedback') return mockMessageBox;
+        return null;
+      },
+      querySelector: () => mockForm,
+      querySelectorAll: () => [],
+      addEventListener: () => {}
+    };
+
+    // Simulate server 503 error
+    global.fetch = async () => ({
+      ok: false,
+      status: 503,
+      json: async () => ({ success: false, error: 'Service Unavailable' })
+    });
+
+    try {
+      const { initContactForm } = require('../js/main.js');
+      initContactForm();
+
+      assert.ok(submitListener);
+      let prevented = false;
+      await submitListener({ preventDefault: () => { prevented = true; } });
+
+      assert.strictEqual(prevented, true);
+      assert.strictEqual(formResetCalled, false, 'Form MUST NOT be reset on server failure');
+      assert.strictEqual(inputs['name'].value, 'Alice Preserved');
+      assert.strictEqual(inputs['message'].value, 'My car needs urgent brake servicing');
+      assert.ok(mockMessageBox.textContent.includes('Service Unavailable'));
+    } finally {
+      global.document = originalDocument;
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 22: Asset cache versioning verification in built HTML
+  await runTest('Build Verification: Generated pages include asset cache-busting query strings', async () => {
+    const fs = require('fs');
+    const path = require('path');
+    const contactHtml = fs.readFileSync(path.join(__dirname, '..', 'contactus', 'index.html'), 'utf8');
+
+    assert.ok(contactHtml.includes('/js/main.js?v='), 'contactus/index.html must reference versioned /js/main.js?v=');
+    assert.ok(contactHtml.includes('/css/style.css?v='), 'contactus/index.html must reference versioned /css/style.css?v=');
+  });
+
   console.log(`\n=== RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED ===\n`);
   if (testsFailed > 0) {
     process.exit(1);
