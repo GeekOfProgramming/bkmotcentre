@@ -1,4 +1,4 @@
-import { onRequestPost } from '../functions/api/contact.js';
+import { onRequestPost, onRequestOptions } from '../functions/api/contact.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -18,28 +18,33 @@ export default {
           env,
           params: {},
           data: {},
-          waitUntil: (promise) => ctx.waitUntil(promise),
+          waitUntil: (promise) => ctx?.waitUntil?.(promise),
           next: () => env.ASSETS.fetch(request)
         });
       }
 
       if (request.method === 'OPTIONS') {
-        const origin = request.headers.get('Origin') || 'https://bkmotcentre.uk';
-        return new Response(null, {
-          status: 204,
-          headers: {
-            'Access-Control-Allow-Origin': origin,
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Accept',
-            'Access-Control-Max-Age': '86400',
-            'Vary': 'Origin'
-          }
+        return onRequestOptions({
+          request,
+          env,
+          params: {},
+          data: {},
+          waitUntil: (promise) => ctx?.waitUntil?.(promise),
+          next: () => env.ASSETS.fetch(request)
         });
       }
 
       return new Response(
         JSON.stringify({ success: false, error: 'Method not allowed' }),
-        { status: 405, headers: { 'Content-Type': 'application/json' } }
+        {
+          status: 405,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
       );
     }
 
