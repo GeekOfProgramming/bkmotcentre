@@ -975,6 +975,55 @@ async function runAllTests() {
     }
   });
 
+  // Test 29: Cloudflare Wrangler runtime variables validation
+  await runTest('Configuration: wrangler.jsonc defines required non-secret runtime vars and preserves secrets', async () => {
+    const fs = require('fs');
+    const path = require('path');
+    const configPath = path.join(__dirname, '..', 'wrangler.jsonc');
+
+    assert.ok(fs.existsSync(configPath), 'wrangler.jsonc must exist in the project root');
+    const rawContent = fs.readFileSync(configPath, 'utf8');
+
+    // Strip comments if present to safely parse JSONC
+    const strippedJson = rawContent.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1').trim();
+    let config;
+    try {
+      config = JSON.parse(strippedJson);
+    } catch (e) {
+      assert.fail(`wrangler.jsonc must be valid JSON/JSONC: ${e.message}`);
+    }
+
+    // Verify top-level non-secret runtime variables
+    assert.ok(config.vars, 'wrangler.jsonc must have a top-level "vars" section');
+    assert.strictEqual(
+      config.vars.CONTACT_FROM_EMAIL,
+      'BK MOT Centre <bookings@bkmotcentre.uk>',
+      'CONTACT_FROM_EMAIL must be "BK MOT Centre <bookings@bkmotcentre.uk>"'
+    );
+    assert.strictEqual(
+      config.vars.CONTACT_TO_EMAIL,
+      'bkmotcentre@gmail.com',
+      'CONTACT_TO_EMAIL must be "bkmotcentre@gmail.com"'
+    );
+
+    // Verify secrets are NOT present in wrangler configuration
+    assert.strictEqual(config.vars.RESEND_API_KEY, undefined, 'RESEND_API_KEY must not be committed to vars');
+    assert.strictEqual(config.vars.TURNSTILE_SECRET_KEY, undefined, 'TURNSTILE_SECRET_KEY must not be committed to vars');
+    assert.strictEqual(rawContent.includes('re_'), false, 'No Resend API key pattern should be in wrangler.jsonc');
+    assert.strictEqual(rawContent.includes('0x4AAAAAA'), false, 'No Turnstile secret pattern should be in wrangler.jsonc');
+
+    // Verify worker settings and assets are preserved
+    assert.strictEqual(config.name, 'bkmotcentre', 'Worker name must be preserved');
+    assert.strictEqual(config.main, 'src/worker.js', 'Worker main entrypoint must be preserved');
+    assert.strictEqual(config.compatibility_date, '2026-10-19', 'Worker compatibility date must be preserved');
+    assert.strictEqual(config.observability && config.observability.enabled, true, 'Observability must be enabled');
+    assert.strictEqual(config.assets && config.assets.directory, '.', 'Assets directory must be "."');
+    assert.strictEqual(config.assets && config.assets.binding, 'ASSETS', 'Assets binding must be "ASSETS"');
+
+    // Ensure no named environments or routing changes
+    assert.strictEqual(config.env, undefined, 'Must not define named environments in wrangler.jsonc');
+  });
+
   console.log(`\n=== RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED ===\n`);
   if (testsFailed > 0) {
     process.exit(1);

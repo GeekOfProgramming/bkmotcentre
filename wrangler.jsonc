@@ -9,5 +9,9 @@
   "assets": {
     "directory": ".",
     "binding": "ASSETS"
+  },
+  "vars": {
+    "CONTACT_FROM_EMAIL": "BK MOT Centre <bookings@bkmotcentre.uk>",
+    "CONTACT_TO_EMAIL": "bkmotcentre@gmail.com"
   }
 }
