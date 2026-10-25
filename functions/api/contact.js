@@ -135,9 +135,24 @@ async function verifyTurnstile(token, remoteIp, secretKey) {
 }
 
 /**
- * Dispatch email via Resend API
+ * Format timestamp in Europe/London time for user communications
  */
-async function sendViaResend({ apiKey, fromEmail, toEmail, replyTo, subject, html, text }) {
+function formatLondonDateTime(date = new Date()) {
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London',
+      dateStyle: 'full',
+      timeStyle: 'short'
+    }).format(date);
+  } catch {
+    return date.toUTCString();
+  }
+}
+
+/**
+ * Dispatch email via Resend API with optional Idempotency-Key
+ */
+async function sendViaResend({ apiKey, fromEmail, toEmail, replyTo, subject, html, text, idempotencyKey }) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 8000);
 
@@ -154,12 +169,18 @@ async function sendViaResend({ apiKey, fromEmail, toEmail, replyTo, subject, htm
       payload.reply_to = replyTo;
     }
 
+    const headers = {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    };
+
+    if (idempotencyKey) {
+      headers['Idempotency-Key'] = idempotencyKey;
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify(payload),
       signal: controller.signal
     });
@@ -369,11 +390,11 @@ export async function onRequestPost(context) {
   const escapedEmail = escapeHtml(email || 'Not provided');
   const escapedService = escapeHtml(service);
   const escapedMessage = escapeHtml(message).replace(/\n/g, '<br>');
-  const submissionTime = new Date().toUTCString();
+  const submissionTimeUk = formatLondonDateTime();
 
-  const emailSubject = `🚗 New Enquiry: ${service} - ${name} [${refId}]`;
-
-  const htmlContent = `
+  // Garage Notification Email
+  const garageSubject = `🚗 New Enquiry: ${service} - ${name} [${refId}]`;
+  const garageHtmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -430,7 +451,7 @@ export async function onRequestPost(context) {
         </tr>
         <tr>
           <th>Submitted At</th>
-          <td>${submissionTime}</td>
+          <td>${submissionTimeUk}</td>
         </tr>
       </table>
 
@@ -447,7 +468,7 @@ export async function onRequestPost(context) {
 </html>
   `.trim();
 
-  const textContent = `
+  const garageTextContent = `
 BK MOT CENTRE LTD - NEW ONLINE ENQUIRY [${refId}]
 ==================================================
 
@@ -456,7 +477,7 @@ Customer Name: ${name}
 Phone Number:  ${phone}
 Email Address: ${email || 'Not provided'}
 Service:       ${service}
-Submitted At:  ${submissionTime}
+Submitted At:  ${submissionTimeUk}
 
 Customer Message:
 -----------------
@@ -467,19 +488,136 @@ BK MOT Centre Ltd, 161 Rolfe Street, Smethwick, Birmingham B66 2AU
 Garage Telephone: 0121 558 9215
   `.trim();
 
-  // 10. Dispatch via Resend
-  const dispatchResult = await sendViaResend({
+  // Customer Confirmation Email (Branded acknowledgement)
+  const customerSubject = `Enquiry Received — BK MOT Centre [${refId}]`;
+  const customerHtmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background-color: #f1f5f9; margin: 0; padding: 24px; }
+    .card { max-width: 620px; margin: 0 auto; background: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .header { background: #021827; padding: 24px 28px; border-bottom: 4px solid #f71635; color: #ffffff; text-align: center; }
+    .header h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 0.5px; color: #ffffff; }
+    .header .subtitle { margin: 6px 0 0; font-size: 13px; color: #94a3b8; }
+    .content { padding: 28px; }
+    .notice-box { background: #eff6ff; border-left: 4px solid #0251b8; padding: 16px; margin-bottom: 24px; border-radius: 4px; }
+    .notice-box .status-tag { display: inline-block; background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px; }
+    .notice-box p { margin: 0; font-size: 14px; line-height: 1.5; color: #1e3a8a; }
+    .ref-badge { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 24px; text-align: center; }
+    .ref-badge .ref-label { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+    .ref-badge .ref-val { font-size: 20px; font-weight: 800; color: #0251b8; letter-spacing: 1px; font-family: monospace; }
+    .ref-badge .ref-note { font-size: 12px; color: #64748b; margin-top: 4px; }
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    .data-table th, .data-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    .data-table th { width: 35%; color: #64748b; font-weight: 600; background: #fafafa; }
+    .data-table td { color: #0f172a; font-weight: 500; }
+    .message-block { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 16px; font-size: 13px; line-height: 1.6; color: #334155; }
+    .contact-card { background: #f8fafc; border-radius: 6px; padding: 16px; margin-top: 24px; border: 1px solid #e2e8f0; }
+    .contact-card h4 { margin: 0 0 8px; font-size: 14px; color: #0f172a; }
+    .contact-card p { margin: 4px 0; font-size: 13px; color: #475569; }
+    .phone-link { color: #f71635; font-weight: 700; text-decoration: none; }
+    .footer { background: #f8fafc; padding: 18px 28px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>BK MOT CENTRE LTD</h1>
+      <div class="subtitle">Vehicle Service &amp; MOT Booking Enquiry</div>
+    </div>
+    <div class="content">
+      <p style="font-size: 15px; margin: 0 0 16px;">Hello ${escapedName},</p>
+      
+      <div class="notice-box">
+        <span class="status-tag">Status: Awaiting appointment confirmation</span>
+        <p><strong>Your enquiry has been received. This is not a confirmed appointment. Our team will contact you to arrange and confirm your booking.</strong></p>
+      </div>
+
+      <div class="ref-badge">
+        <div class="ref-label">Your Enquiry Reference Number</div>
+        <div class="ref-val">${refId}</div>
+        <div class="ref-note">Please keep this reference number for your records or when calling our workshop.</div>
+      </div>
+
+      <table class="data-table">
+        <tr>
+          <th>Requested Service</th>
+          <td><strong style="color: #0251b8;">${escapedService}</strong></td>
+        </tr>
+        <tr>
+          <th>Date Submitted</th>
+          <td>${submissionTimeUk}</td>
+        </tr>
+      </table>
+
+      <h3 style="font-size: 13px; color: #64748b; text-transform: uppercase; margin: 0 0 8px;">Summary of Your Enquiry:</h3>
+      <div class="message-block">
+        ${escapedMessage}
+      </div>
+
+      <div class="contact-card">
+        <h4>Need immediate assistance or have a query?</h4>
+        <p>📞 <strong>Telephone:</strong> <a href="tel:01215589215" class="phone-link">0121 558 9215</a></p>
+        <p>📍 <strong>Garage Address:</strong> 161 Rolfe Street, Smethwick, Birmingham B66 2AU</p>
+        <p>🕒 <strong>Workshop Hours:</strong> Everyday: 9:00 AM – 6:00 PM</p>
+      </div>
+    </div>
+    <div class="footer">
+      This is an automated acknowledgement from BK MOT Centre Ltd, 161 Rolfe Street, Smethwick, B66 2AU.<br>
+      Please do not reply directly to this email. For any updates, please call us quoting reference ${refId}.
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  const customerTextContent = `
+BK MOT CENTRE LTD — ENQUIRY ACKNOWLEDGEMENT
+===========================================
+
+Hello ${name},
+
+Your enquiry has been received. This is not a confirmed appointment. Our team will contact you to arrange and confirm your booking.
+
+Please keep this reference number for your records or when speaking with our team:
+Enquiry Reference: ${refId}
+
+Enquiry Summary:
+----------------
+Customer Name:      ${name}
+Service Requested:  ${service}
+Submitted At:       ${submissionTimeUk}
+Status:             Awaiting appointment confirmation
+
+Your Message Summary:
+---------------------
+${message}
+
+Garage Contact Details:
+-----------------------
+BK MOT Centre Ltd
+161 Rolfe Street, Smethwick, Birmingham B66 2AU
+Telephone: 0121 558 9215
+Workshop Hours: Everyday: 9:00 AM – 6:00 PM
+Website: https://bkmotcentre.uk
+  `.trim();
+
+  // 10. Dispatch Garage Notification First
+  const garageResult = await sendViaResend({
     apiKey,
     fromEmail,
     toEmail,
     replyTo: isValidEmail(email) ? email : undefined,
-    subject: emailSubject,
-    html: htmlContent,
-    text: textContent
+    subject: garageSubject,
+    html: garageHtmlContent,
+    text: garageTextContent,
+    idempotencyKey: `${refId}-garage`
   });
 
-  if (!dispatchResult.success) {
-    console.error(`[Contact API] Ref: ${refId} | Resend dispatch failure (${dispatchResult.status}): ${dispatchResult.error}`);
+  if (!garageResult.success) {
+    console.error(`[Contact API] Ref: ${refId} | Resend garage dispatch failure (${garageResult.status}): ${garageResult.error}`);
     return new Response(
       JSON.stringify({
         success: false,
@@ -489,13 +627,40 @@ Garage Telephone: 0121 558 9215
     );
   }
 
-  // 11. Success Response (Explicit Contract)
-  console.log(`[Contact API] Ref: ${refId} | Successfully delivered to Resend (ID: ${dispatchResult.id})`);
+  console.log(`[Contact API] Ref: ${refId} | Garage notification delivered (ID: ${garageResult.id})`);
+
+  // 11. Dispatch Customer Confirmation (Only if valid customer email supplied)
+  let customerEmailSent = false;
+  if (isValidEmail(email)) {
+    const customerResult = await sendViaResend({
+      apiKey,
+      fromEmail,
+      toEmail: email,
+      subject: customerSubject,
+      html: customerHtmlContent,
+      text: customerTextContent,
+      idempotencyKey: `${refId}-customer`
+    });
+
+    if (customerResult.success) {
+      customerEmailSent = true;
+      console.log(`[Contact API] Ref: ${refId} | Customer confirmation delivered (ID: ${customerResult.id})`);
+    } else {
+      console.warn(`[Contact API] Ref: ${refId} | Customer confirmation failed (${customerResult.status}): ${customerResult.error}`);
+    }
+  }
+
+  // 12. Success Response (Explicit Contract)
+  const responseMessage = customerEmailSent
+    ? `Thank you! Your enquiry has been received. A confirmation email has been sent to your inbox. Our team will contact you promptly to confirm your booking date and time. (Enquiry Ref: ${refId} — quote this if you call our garage on 0121 558 9215).`
+    : `Thank you! Your enquiry has been received. Our team will contact you promptly to confirm your booking date and time. (Enquiry Ref: ${refId} — quote this if you call our garage on 0121 558 9215).`;
+
   return new Response(
     JSON.stringify({
       success: true,
       ref: refId,
-      message: `Thank you! Your enquiry has been received. Our team will contact you promptly to confirm your booking date and time. (Enquiry Ref: ${refId} — quote this if you call our garage on 0121 558 9215).`
+      customerEmailSent,
+      message: responseMessage
     }),
     { status: 200, headers: responseHeaders }
   );

@@ -190,10 +190,10 @@ async function runAllTests() {
     }
   });
 
-  // Test 10: Successful mocked Resend dispatch with Turnstile verified
+  // Test 10: Successful mocked Resend dispatch with Turnstile verified (Dual Dispatch: Garage + Customer)
   await runTest('Successful Resend dispatch with mocked fetch (returns 200 & ref ID)', async () => {
     const originalFetch = global.fetch;
-    let interceptedPayload = null;
+    const interceptedRequests = [];
 
     global.fetch = async (url, options) => {
       if (url.includes('turnstile/v0/siteverify')) {
@@ -203,11 +203,15 @@ async function runAllTests() {
         };
       }
       if (url === 'https://api.resend.com/emails') {
-        interceptedPayload = JSON.parse(options.body);
+        interceptedRequests.push({
+          url,
+          options,
+          body: JSON.parse(options.body)
+        });
         return {
           ok: true,
           status: 200,
-          json: async () => ({ id: 'mock_msg_987654321' })
+          json: async () => ({ id: `mock_msg_${interceptedRequests.length}` })
         };
       }
       return originalFetch(url, options);
@@ -236,14 +240,31 @@ async function runAllTests() {
       assert.strictEqual(res.status, 200);
       const data = await res.json();
       assert.strictEqual(data.success, true);
+      assert.strictEqual(data.customerEmailSent, true);
       assert.ok(data.ref.startsWith('BK-'));
       assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
-      // Verify XSS escaping inside HTML body
-      assert.ok(interceptedPayload.html.includes('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'));
-      assert.ok(!interceptedPayload.html.includes('<script>alert("xss")</script>'));
-      assert.strictEqual(interceptedPayload.reply_to, 'agent007@mi6.gov.uk');
-      assert.strictEqual(interceptedPayload.to[0], 'garage@bkmotcentre.uk');
+      // Both Garage and Customer emails were dispatched
+      assert.strictEqual(interceptedRequests.length, 2);
+
+      // 1. Garage Notification verification
+      const garageEmail = interceptedRequests[0];
+      assert.strictEqual(garageEmail.body.to[0], 'garage@bkmotcentre.uk');
+      assert.strictEqual(garageEmail.body.reply_to, 'agent007@mi6.gov.uk');
+      assert.strictEqual(garageEmail.options.headers['Idempotency-Key'], `${data.ref}-garage`);
+      assert.ok(garageEmail.body.html.includes('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'));
+      assert.ok(!garageEmail.body.html.includes('<script>alert("xss")</script>'));
+
+      // 2. Customer Confirmation verification
+      const customerEmail = interceptedRequests[1];
+      assert.strictEqual(customerEmail.body.to[0], 'agent007@mi6.gov.uk');
+      assert.strictEqual(customerEmail.options.headers['Idempotency-Key'], `${data.ref}-customer`);
+      assert.ok(customerEmail.body.subject.includes(data.ref));
+      assert.ok(customerEmail.body.html.includes('Your enquiry has been received. This is not a confirmed appointment. Our team will contact you to arrange and confirm your booking.'));
+      assert.ok(customerEmail.body.html.includes('0121 558 9215'));
+      assert.ok(customerEmail.body.html.includes('161 Rolfe Street, Smethwick, Birmingham B66 2AU'));
+      assert.ok(customerEmail.body.html.includes('Awaiting appointment confirmation'));
+      assert.ok(customerEmail.body.text.includes(data.ref));
     } finally {
       global.fetch = originalFetch;
     }
@@ -650,6 +671,308 @@ async function runAllTests() {
 
     assert.ok(contactHtml.includes('/js/main.js?v='), 'contactus/index.html must reference versioned /js/main.js?v=');
     assert.ok(contactHtml.includes('/css/style.css?v='), 'contactus/index.html must reference versioned /css/style.css?v=');
+  });
+
+  // Test 23: Missing customer email sends garage email only (customerEmailSent: false)
+  await runTest('Customer Email: Missing customer email dispatches garage email only', async () => {
+    const originalFetch = global.fetch;
+    const resendCalls = [];
+
+    global.fetch = async (url, options) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      if (url === 'https://api.resend.com/emails') {
+        resendCalls.push(JSON.parse(options.body));
+        return { ok: true, status: 200, json: async () => ({ id: 're_garage_only_123' }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: 'Sarah Connor',
+          phone: '01215589215',
+          email: '', // No email provided
+          service: 'MOT',
+          message: 'MOT test enquiry without email',
+          turnstileToken: 'valid_token'
+        }
+      });
+
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      const res = await onRequestPost({ request: req, env });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(data.success, true);
+      assert.strictEqual(data.customerEmailSent, false);
+      assert.strictEqual(resendCalls.length, 1);
+      assert.strictEqual(resendCalls[0].to[0], 'garage@bkmotcentre.uk');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 24: Failed garage email halts flow — customer confirmation is NEVER dispatched
+  await runTest('Customer Email: Failed garage email prevents customer confirmation dispatch', async () => {
+    const originalFetch = global.fetch;
+    let resendCallCount = 0;
+
+    global.fetch = async (url) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      if (url === 'https://api.resend.com/emails') {
+        resendCallCount++;
+        // First call (garage) fails
+        return { ok: false, status: 500, json: async () => ({ message: 'Upstream gateway error' }) };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: 'Customer Test',
+          phone: '01215589215',
+          email: 'customer@testdomain.co.uk',
+          service: 'MOT',
+          message: 'Should not get confirmation if garage notification fails',
+          turnstileToken: 'valid_token'
+        }
+      });
+
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      const res = await onRequestPost({ request: req, env });
+      assert.strictEqual(res.status, 502);
+      const data = await res.json();
+      assert.strictEqual(data.success, false);
+      assert.strictEqual(resendCallCount, 1, 'Resend must only be called once; customer confirmation must not be attempted if garage fails');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 25: Failed customer confirmation leaves garage enquiry reported as successful (returns 200)
+  await runTest('Customer Email: Failed customer confirmation preserves garage enquiry success', async () => {
+    const originalFetch = global.fetch;
+    let resendCalls = 0;
+
+    global.fetch = async (url) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      if (url === 'https://api.resend.com/emails') {
+        resendCalls++;
+        if (resendCalls === 1) {
+          // Garage notification succeeds
+          return { ok: true, status: 200, json: async () => ({ id: 're_garage_ok_1' }) };
+        }
+        // Customer confirmation fails (e.g. rate limit or bad recipient address)
+        return { ok: false, status: 429, json: async () => ({ message: 'Too many requests' }) };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: 'Robert Davis',
+          phone: '01215589215',
+          email: 'robert@rate-limited.com',
+          service: 'Car Diagnosis',
+          message: 'Check engine diagnostic required',
+          turnstileToken: 'valid_token'
+        }
+      });
+
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      const res = await onRequestPost({ request: req, env });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(data.success, true);
+      assert.strictEqual(data.customerEmailSent, false);
+      assert.strictEqual(resendCalls, 2);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 26: Reference number matches across garage email, customer email, and API response
+  await runTest('Customer Email: Reference ID strictly matches across all messages and response', async () => {
+    const originalFetch = global.fetch;
+    const dispatchedEmails = [];
+
+    global.fetch = async (url, options) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      if (url === 'https://api.resend.com/emails') {
+        dispatchedEmails.push({
+          options,
+          body: JSON.parse(options.body)
+        });
+        return { ok: true, status: 200, json: async () => ({ id: `re_id_${dispatchedEmails.length}` }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: 'Consistency Test',
+          phone: '01215589215',
+          email: 'test@consistency.uk',
+          service: 'Brakes & Suspension',
+          message: 'Suspension squeaking',
+          turnstileToken: 'valid_token'
+        }
+      });
+
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      const res = await onRequestPost({ request: req, env });
+      const data = await res.json();
+      assert.strictEqual(res.status, 200);
+      assert.ok(data.ref);
+
+      const ref = data.ref;
+      assert.ok(dispatchedEmails[0].body.subject.includes(ref), 'Garage subject must contain ref');
+      assert.ok(dispatchedEmails[0].body.html.includes(ref), 'Garage html must contain ref');
+      assert.ok(dispatchedEmails[1].body.subject.includes(ref), 'Customer subject must contain ref');
+      assert.ok(dispatchedEmails[1].body.html.includes(ref), 'Customer html must contain ref');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 27: Privacy audit - No customer PII is exposed in server console logs
+  await runTest('Privacy Audit: No customer PII (name, phone, email, message) is exposed in server logs', async () => {
+    const originalFetch = global.fetch;
+    const capturedLogs = [];
+
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+
+    console.log = (...args) => capturedLogs.push(args.join(' '));
+    console.warn = (...args) => capturedLogs.push(args.join(' '));
+    console.error = (...args) => capturedLogs.push(args.join(' '));
+
+    global.fetch = async (url) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      if (url === 'https://api.resend.com/emails') {
+        return { ok: true, status: 200, json: async () => ({ id: 're_privacy_check_id' }) };
+      }
+      return originalFetch(url);
+    };
+
+    const privateName = 'SirArthurConanDoyle_TopSecret';
+    const privatePhone = '07890123456';
+    const privateEmail = 'sherlock@221b-bakerstreet.co.uk';
+    const privateMessage = 'ConfidentialMessageContainingTopSecretCarIssues_XYZ123';
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: privateName,
+          phone: privatePhone,
+          email: privateEmail,
+          service: 'MOT',
+          message: privateMessage,
+          turnstileToken: 'valid_token'
+        }
+      });
+
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      const res = await onRequestPost({ request: req, env });
+      assert.strictEqual(res.status, 200);
+
+      // Verify none of the captured logs contain any of the private customer PII strings
+      const allLogs = capturedLogs.join('\n');
+      assert.strictEqual(allLogs.includes(privateName), false, 'Log must NOT contain customer name');
+      assert.strictEqual(allLogs.includes(privatePhone), false, 'Log must NOT contain customer phone');
+      assert.strictEqual(allLogs.includes(privateEmail), false, 'Log must NOT contain customer email');
+      assert.strictEqual(allLogs.includes(privateMessage), false, 'Log must NOT contain customer message');
+    } finally {
+      console.log = originalLog;
+      console.warn = originalWarn;
+      console.error = originalError;
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 28: Idempotency behavior for retry scenarios
+  await runTest('Resend Idempotency: Headers include distinct, deterministic Idempotency-Key per message', async () => {
+    const originalFetch = global.fetch;
+    const capturedHeaders = [];
+
+    global.fetch = async (url, options) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      if (url === 'https://api.resend.com/emails') {
+        capturedHeaders.push(options.headers);
+        return { ok: true, status: 200, json: async () => ({ id: 're_idempotency_123' }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: 'Idempotency Tester',
+          phone: '01215589215',
+          email: 'tester@idempotency.co.uk',
+          service: 'Engine repair',
+          message: 'Engine vibration test',
+          turnstileToken: 'valid_token'
+        }
+      });
+
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      const res = await onRequestPost({ request: req, env });
+      const data = await res.json();
+      assert.strictEqual(res.status, 200);
+
+      assert.strictEqual(capturedHeaders.length, 2);
+      assert.strictEqual(capturedHeaders[0]['Idempotency-Key'], `${data.ref}-garage`);
+      assert.strictEqual(capturedHeaders[1]['Idempotency-Key'], `${data.ref}-customer`);
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 
   console.log(`\n=== RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED ===\n`);
