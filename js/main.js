@@ -266,7 +266,11 @@ function initContactForm() {
 
     // Generate or reuse stable submissionId for safe idempotency
     if (!form.dataset.submissionId) {
-      form.dataset.submissionId = 'sub_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        form.dataset.submissionId = crypto.randomUUID();
+      } else {
+        form.dataset.submissionId = 'sub_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      }
     }
     const submissionId = form.dataset.submissionId;
 

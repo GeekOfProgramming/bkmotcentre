@@ -150,6 +150,28 @@ function formatLondonDateTime(date = new Date()) {
 }
 
 /**
+ * Generate a deterministic customer-visible reference ID from a validated submissionId using SHA-256.
+ * Format: BK-<12-character hex digest> (e.g. BK-ED1E1DCF9719)
+ * 12 hex characters = 48 bits of entropy from the full SHA-256 digest, making accidental collision
+ * extremely unlikely (1 in 281 trillion possibilities), while remaining human-readable and telephone-friendly.
+ */
+async function generateReferenceId(submissionId) {
+  if (submissionId && typeof submissionId === 'string') {
+    try {
+      const data = new TextEncoder().encode(submissionId);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+      return `BK-${hex.slice(0, 12)}`;
+    } catch {
+      // Fallback if subtle crypto digest fails
+    }
+  }
+  // Safe backward compatibility fallback for missing or unhashable submissions
+  return 'BK-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1000).toString(36).toUpperCase();
+}
+
+/**
  * Dispatch email via Resend API with optional Idempotency-Key
  */
 async function sendViaResend({ apiKey, fromEmail, toEmail, replyTo, subject, html, text, idempotencyKey }) {
@@ -339,15 +361,11 @@ export async function onRequestPost(context) {
   // Sanitize submissionId to alphanumeric and hyphens only, max 64 chars
   const submissionId = /^[a-zA-Z0-9_-]{8,64}$/.test(rawSubmissionId) ? rawSubmissionId : null;
 
-  // Stable Reference ID derived from client submissionId or generated fresh
-  let refId;
-  if (submissionId) {
-    // Generate deterministic refId from submissionId (e.g. BK-<compact-submissionId>)
-    const compactSubId = submissionId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10).toUpperCase();
-    refId = `BK-${compactSubId}`;
-  } else {
-    refId = 'BK-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1000).toString(36).toUpperCase();
-  }
+  // Stable Reference ID:
+  // When a valid submissionId is provided, generate a deterministic reference ID using SHA-256
+  // of the complete submission identifier (BK-<12-hex-chars>) ensuring collision resistance.
+  // When submissionId is absent or invalid, safely generate a backward-compatible random reference.
+  const refId = await generateReferenceId(submissionId);
 
   // Base key for upstream email idempotency
   const idempotencyBase = submissionId || refId;

@@ -977,10 +977,11 @@ async function runAllTests() {
     }
   });
 
-  // Test 28b: Client-provided submissionId creates deterministic refId and stable idempotency keys across retries
-  await runTest('Submission Idempotency: submissionId produces stable reference and identical Resend Idempotency-Key across retries', async () => {
+  // Test 28b: Client-provided submissionId creates deterministic SHA-256 refId and stable idempotency keys across retries
+  await runTest('Submission Idempotency: submissionId produces stable SHA-256 reference and identical Resend Idempotency-Key across retries', async () => {
     const originalFetch = global.fetch;
     const capturedKeys = [];
+    const capturedPayloads = [];
 
     global.fetch = async (url, options = {}) => {
       const urlStr = typeof url === 'string' ? url : url.toString();
@@ -989,13 +990,16 @@ async function runAllTests() {
       }
       if (urlStr.includes('api.resend.com/emails')) {
         capturedKeys.push(options.headers['Idempotency-Key']);
+        if (options.body) {
+          capturedPayloads.push(JSON.parse(options.body));
+        }
         return { ok: true, status: 200, json: async () => ({ id: 're_stable_123' }) };
       }
       return originalFetch(url, options);
     };
 
     try {
-      const clientSubId = 'sub_test_abc12345';
+      const clientSubId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
       const payload = {
         submissionId: clientSubId,
         name: 'Jane Doe',
@@ -1023,16 +1027,166 @@ async function runAllTests() {
       const data2 = await res2.json();
       assert.strictEqual(res2.status, 200);
 
-      // Verify reference numbers are identical across retries
-      assert.strictEqual(data1.ref, data2.ref, 'Ref IDs must match for the same submissionId');
-      assert.ok(data1.ref.startsWith('BK-SUBTEST'), 'Ref ID must be derived deterministically from submissionId');
+      // 1. Same submission ID consistently produces the exact same reference
+      assert.strictEqual(data1.ref, data2.ref, 'Ref IDs must match for the same submissionId across retries');
+      assert.ok(/^BK-[A-F0-9]{12}$/.test(data1.ref), 'Ref ID must match BK-<12-hex-chars> format');
 
-      // Verify all 4 dispatched emails (2 garage, 2 customer) used the exact same stable idempotency keys
+      // 2. Both outgoing emails contain the correct reference ID
+      assert.strictEqual(capturedPayloads.length, 4);
+      assert.ok(capturedPayloads[0].subject.includes(data1.ref), 'Garage email subject must include reference');
+      assert.ok(capturedPayloads[0].html.includes(data1.ref), 'Garage email HTML must include reference');
+      assert.ok(capturedPayloads[1].subject.includes(data1.ref), 'Customer email subject must include reference');
+      assert.ok(capturedPayloads[1].html.includes(data1.ref), 'Customer email HTML must include reference');
+
+      // 3. Verify all 4 dispatched emails (2 garage, 2 customer) used the exact same stable idempotency keys
       assert.strictEqual(capturedKeys.length, 4);
       assert.strictEqual(capturedKeys[0], `${clientSubId}-garage`);
       assert.strictEqual(capturedKeys[1], `${clientSubId}-customer`);
       assert.strictEqual(capturedKeys[2], `${clientSubId}-garage`);
       assert.strictEqual(capturedKeys[3], `${clientSubId}-customer`);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 28c: Collision resistance test: Different submission IDs produce different references even if first 10 characters are identical
+  await runTest('Reference Digest: Distinct submission IDs with identical first 10 chars produce completely distinct references', async () => {
+    const originalFetch = global.fetch;
+
+    global.fetch = async (url, options = {}) => {
+      const urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr.includes('challenges.cloudflare.com/turnstile')) {
+        return { ok: true, status: 200, json: async () => ({ success: true }) };
+      }
+      if (urlStr.includes('api.resend.com/emails')) {
+        return { ok: true, status: 200, json: async () => ({ id: 're_mock_ok' }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      // Two submission IDs sharing identical first 10 characters: "1234567890..."
+      const subId1 = '1234567890-alpha-batch';
+      const subId2 = '1234567890-bravo-batch';
+
+      const res1 = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            submissionId: subId1,
+            name: 'Client Alpha',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Alpha booking test',
+            turnstileToken: 'token_alpha'
+          }
+        }),
+        env
+      });
+      const data1 = await res1.json();
+
+      const res2 = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            submissionId: subId2,
+            name: 'Client Bravo',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Bravo booking test',
+            turnstileToken: 'token_bravo'
+          }
+        }),
+        env
+      });
+      const data2 = await res2.json();
+
+      assert.notStrictEqual(data1.ref, data2.ref, 'Distinct submission IDs must never collide, even with common prefixes');
+      assert.ok(/^BK-[A-F0-9]{12}$/.test(data1.ref), 'data1.ref format must be valid');
+      assert.ok(/^BK-[A-F0-9]{12}$/.test(data2.ref), 'data2.ref format must be valid');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 28d: Backward compatibility & safe handling of missing and invalid submission IDs
+  await runTest('SubmissionId Validation: Missing, malformed or invalid submission IDs fall back safely without error', async () => {
+    const originalFetch = global.fetch;
+
+    global.fetch = async (url, options = {}) => {
+      const urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr.includes('challenges.cloudflare.com/turnstile')) {
+        return { ok: true, status: 200, json: async () => ({ success: true }) };
+      }
+      if (urlStr.includes('api.resend.com/emails')) {
+        return { ok: true, status: 200, json: async () => ({ id: 're_mock_fallback' }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      // Case A: Missing submissionId (legacy client)
+      const resMissing = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            name: 'Legacy Client',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Legacy client enquiry',
+            turnstileToken: 'valid_token'
+          }
+        }),
+        env
+      });
+      const dataMissing = await resMissing.json();
+      assert.strictEqual(resMissing.status, 200);
+      assert.ok(dataMissing.ref.startsWith('BK-'), 'Fallback ref must start with BK-');
+
+      // Case B: Invalid characters (e.g. spaces or injection chars)
+      const resInvalid = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            submissionId: 'bad id with spaces and $#@! symbols',
+            name: 'Attacker Attempt',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Testing character filter',
+            turnstileToken: 'valid_token'
+          }
+        }),
+        env
+      });
+      const dataInvalid = await resInvalid.json();
+      assert.strictEqual(resInvalid.status, 200);
+      assert.ok(dataInvalid.ref.startsWith('BK-'), 'Invalid submissionId should safely fallback without crashing');
+
+      // Case C: Too short (<8 chars)
+      const resTooShort = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            submissionId: 'short',
+            name: 'Short ID Client',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Testing length boundary',
+            turnstileToken: 'valid_token'
+          }
+        }),
+        env
+      });
+      const dataTooShort = await resTooShort.json();
+      assert.strictEqual(resTooShort.status, 200);
+      assert.ok(dataTooShort.ref.startsWith('BK-'), 'Short submissionId should safely fallback');
     } finally {
       global.fetch = originalFetch;
     }
