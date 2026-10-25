@@ -78,12 +78,30 @@ function isAllowedOrigin(request) {
  * Generate precise CORS headers matching allowed origins
  */
 function getCorsHeaders(request) {
-  const origin = request.headers.get('Origin') || 'https://bkmotcentre.uk';
+  const origin = request.headers.get('Origin');
+  if (!origin) {
+    return {
+      'Access-Control-Allow-Origin': 'https://bkmotcentre.uk',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Accept',
+      'Access-Control-Max-Age': '86400',
+      'Vary': 'Origin'
+    };
+  }
+
+  // Only allow and reflect whitelisted origins; never reflect arbitrary origins
+  if (isAllowedOrigin(request)) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Accept',
+      'Access-Control-Max-Age': '86400',
+      'Vary': 'Origin'
+    };
+  }
+
+  // Untrusted origin: do not reflect origin or grant access
   return {
-    'Access-Control-Allow-Origin': isAllowedOrigin(request) ? origin : 'https://bkmotcentre.uk',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Accept',
-    'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
 }
@@ -92,7 +110,7 @@ function getCorsHeaders(request) {
  * Cloudflare Turnstile token verification
  */
 async function verifyTurnstile(token, remoteIp, secretKey) {
-  if (!secretKey) return { success: true };
+  if (!secretKey) return { success: false, error: 'Turnstile secret key missing' };
   if (!token) return { success: false, error: 'Security verification is required.' };
 
   const formData = new URLSearchParams();
@@ -174,6 +192,34 @@ const NO_CACHE_HEADERS = {
   'Expires': '0',
   'Surrogate-Control': 'no-store'
 };
+
+/**
+ * OPTIONS Request Handler (CORS Preflight)
+ * Ensures arbitrary origins are rejected and never reflected in CORS headers
+ */
+export async function onRequestOptions(context) {
+  const { request } = context;
+  const origin = request.headers.get('Origin');
+
+  // If Origin header is present and not allowed, reject preflight without reflecting origin
+  if (origin && !isAllowedOrigin(request)) {
+    return new Response(null, {
+      status: 403,
+      headers: {
+        ...NO_CACHE_HEADERS,
+        'Vary': 'Origin'
+      }
+    });
+  }
+
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...getCorsHeaders(request),
+      ...NO_CACHE_HEADERS
+    }
+  });
+}
 
 /**
  * Main POST Request Handler
