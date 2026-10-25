@@ -1,0 +1,6 @@
+# robots.txt for BK MOT Centre
+User-agent: *
+Allow: /
+
+# XML Sitemap
+Sitemap: https://bkmotcentre.uk/sitemap.xml

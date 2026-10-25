@@ -127,67 +127,143 @@ function initFaqAccordion() {
 }
 
 /**
- * Contact & Booking Form Submission (Cloudflare Pages Function integration)
+ * Contact & Booking Form Submission (Cloudflare Workers API + Resend integration)
  */
 function initContactForm() {
-  const form = document.getElementById('contact-form');
+  const form = document.getElementById('contact-form') || document.getElementById('contact-page-form');
   const messageBox = document.getElementById('form-feedback');
 
-  if (!form || !messageBox) return;
+  if (!form) return;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const submitBtn = form.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Submit';
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Send Message';
 
-    // Basic Validation
-    const name = form.querySelector('[name="name"]').value.trim();
-    const phone = form.querySelector('[name="phone"]').value.trim();
-    const email = form.querySelector('[name="email"]').value.trim();
-    const service = form.querySelector('[name="service"]').value;
-    const message = form.querySelector('[name="message"]').value.trim();
+    // Form inputs
+    const nameInput = form.querySelector('[name="name"]');
+    const phoneInput = form.querySelector('[name="phone"]');
+    const emailInput = form.querySelector('[name="email"]');
+    const serviceInput = form.querySelector('[name="service"]');
+    const messageInput = form.querySelector('[name="message"]');
 
-    if (!name || !phone) {
-      showFeedback('Please provide your name and phone number so we can reach you.', 'error');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    const service = serviceInput ? serviceInput.value.trim() : '';
+    const message = messageInput ? messageInput.value.trim() : '';
+
+    // Client-side validations
+    if (!name || name.length < 2) {
+      showFeedback('Please enter your full name (at least 2 characters).', 'error');
+      if (nameInput) nameInput.focus();
       return;
     }
 
+    const digitsOnly = phone.replace(/[^0-9]/g, '');
+    if (!phone || digitsOnly.length < 7 || digitsOnly.length > 15) {
+      showFeedback('Please provide a valid phone number so our garage can reach you (7 to 15 digits).', 'error');
+      if (phoneInput) phoneInput.focus();
+      return;
+    }
+
+    if (email) {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        showFeedback('Please enter a valid email address (e.g. name@example.co.uk).', 'error');
+        if (emailInput) emailInput.focus();
+        return;
+      }
+    }
+
+    if (!service) {
+      showFeedback('Please select the service required from the dropdown.', 'error');
+      if (serviceInput) serviceInput.focus();
+      return;
+    }
+
+    if (!message || message.length < 5) {
+      showFeedback('Please provide a brief message about your vehicle enquiry (at least 5 characters).', 'error');
+      if (messageInput) messageInput.focus();
+      return;
+    }
+
+    // Turnstile token extraction (supports both DOM hidden input and JS API)
+    let turnstileToken = '';
+    const turnstileField = form.querySelector('[name="cf-turnstile-response"]');
+    if (turnstileField && turnstileField.value) {
+      turnstileToken = turnstileField.value.trim();
+    } else if (typeof turnstile !== 'undefined') {
+      try {
+        turnstileToken = turnstile.getResponse() || '';
+      } catch (tErr) {}
+    }
+
+    if (!turnstileToken && form.querySelector('.cf-turnstile')) {
+      showFeedback('Please complete the Cloudflare security verification check before sending.', 'error');
+      return;
+    }
+
+    // Prevent duplicate submission
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.innerHTML = 'Sending Enquiry...';
+      submitBtn.setAttribute('aria-busy', 'true');
     }
 
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, email, service, message, timestamp: new Date().toISOString() })
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          phone,
+          email,
+          service,
+          message,
+          turnstileToken,
+          timestamp: new Date().toISOString()
+        })
       });
 
-      if (response.ok) {
-        showFeedback('Thank you! Your message has been received. Our team will contact you shortly.', 'success');
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.success) {
+        showFeedback(data.message || 'Thank you! Your enquiry has been received. Our team will contact you shortly to confirm your booking date and time.', 'success');
         form.reset();
+        // Reset turnstile if present
+        if (typeof turnstile !== 'undefined') {
+          try { turnstile.reset(); } catch {}
+        }
       } else {
-        // Fallback for static preview without function running
-        showFeedback('Thank you! Your enquiry has been registered. For immediate booking, please call us on 0121 558 9215.', 'success');
-        form.reset();
+        // Honest error message: user input is preserved (do not reset form)
+        const errorMsg = data.error || 'Online dispatch is currently unavailable. Please call us directly on 0121 558 9215 to book immediately.';
+        showFeedback(errorMsg, 'error');
       }
     } catch (err) {
-      // Graceful offline/local handling
-      showFeedback('Thank you! Your enquiry has been registered. For immediate bookings, call us directly on 0121 558 9215.', 'success');
-      form.reset();
+      // Network/offline failure: user input is preserved
+      showFeedback('Connection error. Please call us directly on 0121 558 9215 to book your slot.', 'error');
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;
+        submitBtn.removeAttribute('aria-busy');
       }
     }
   });
 
   function showFeedback(text, type) {
+    if (!messageBox) {
+      alert(text);
+      return;
+    }
     messageBox.textContent = text;
     messageBox.className = `form-message ${type}`;
+    messageBox.style.display = 'block';
     messageBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
