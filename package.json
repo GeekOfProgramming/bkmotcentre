@@ -8,9 +8,14 @@
     "dev": "node tools/build.js && npx live-server --port=3000 --open=index.html",
     "start": "node tools/build.js && npx live-server --port=3000 --open=index.html",
     "preview": "python -m http.server 3000",
+    "deploy": "wrangler deploy",
+    "worker:dev": "wrangler dev",
     "pages:dev": "npx wrangler pages dev ."
   },
-  "keywords": ["mot", "garage", "bkmotcentre", "cloudflare-pages"],
+  "devDependencies": {
+    "wrangler": "^4.152.0"
+  },
+  "keywords": ["mot", "garage", "bkmotcentre", "cloudflare-pages", "cloudflare-workers"],
   "author": "BK MOT Centre Ltd",
   "license": "ISC"
 }

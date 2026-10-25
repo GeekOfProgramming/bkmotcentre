@@ -1,0 +1,27 @@
+# Cloudflare Workers Static Assets Ignore File
+# Prevents uploading dependencies, source templates, and tooling to CDN
+
+node_modules/
+.git/
+.github/
+.vscode/
+.idea/
+.wrangler/
+
+# Build tools & source components
+tools/
+components/
+src/
+functions/
+docs/
+
+# Config & metadata files
+package.json
+package-lock.json
+bun.lockb
+bun.lock
+dev.bat
+README.md
+*.log
+Thumbs.db
+.DS_Store
