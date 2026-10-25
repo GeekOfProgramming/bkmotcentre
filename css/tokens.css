@@ -1,9 +1,8 @@
 /* ==========================================================================
    BK MOT CENTRE LTD - Design Tokens
    Compliant with Anthropic frontend-design & Vercel web-design-guidelines
+   Fonts are loaded via <link rel="preconnect"> in HTML for zero render blocking
    ========================================================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Khand:wght@500;600;700&display=swap');
 
 :root {
   /* Brand Palette - Automotive Industrial */

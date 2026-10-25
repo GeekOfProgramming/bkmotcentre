@@ -21,10 +21,10 @@
 <header class="site-header">
   <div class="header-container">
     <a href="/" class="site-logo" aria-label="BK MOT Centre Home">
-      <img src="/assets/images/logo.png" alt="BK Mot Centre Logo" width="168" height="52">
+      <img src="/assets/images/logo.png" alt="BK Mot Centre Logo" width="168" height="52" decoding="async">
     </a>
 
-    <nav class="site-nav" aria-label="Primary Navigation">
+    <nav class="site-nav" id="primary-navigation" aria-label="Primary Navigation">
       <ul class="nav-list">
         <li><a href="/" class="nav-link{{#if isHome}} active{{/if}}">Home</a></li>
         <li><a href="/aboutus/" class="nav-link{{#if isAbout}} active{{/if}}">About Us</a></li>
@@ -32,6 +32,14 @@
         <li><a href="/services/" class="nav-link{{#if isServices}} active{{/if}}">Services</a></li>
         <li><a href="/contactus/" class="nav-link{{#if isContact}} active{{/if}}">Contact Us</a></li>
       </ul>
+      <div class="mobile-drawer-actions">
+        <a href="tel:01215589215" class="mobile-drawer-call">
+          <span>📞</span> <strong>0121 558 9215</strong>
+        </a>
+        <a href="/contactus/" class="mobile-drawer-book">
+          <span>Book Appointment &gt;</span>
+        </a>
+      </div>
     </nav>
 
     <div class="header-actions">
@@ -45,7 +53,7 @@
       <a href="/contactus/" class="skewed-btn red-btn header-book-btn">Book Appointment <span class="btn-arrow-icon">&gt;</span></a>
     </div>
 
-    <button class="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+    <button class="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-navigation">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>

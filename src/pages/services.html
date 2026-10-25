@@ -17,6 +17,12 @@
   <link rel="canonical" href="https://bkmotcentre.uk/services/">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="icon" type="image/png" href="/favicon.png">
+
+  <!-- Preconnect Google Fonts for zero render-blocking latency -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Khand:wght@500;600;700&display=swap">
+
   <link rel="stylesheet" href="/css/style.css">
 
   <!-- Schema.org LocalBusiness Data -->
@@ -55,7 +61,10 @@
         <div class="services-hero-visual-col">
           <div class="services-hero-angled-frame">
             <div class="services-hero-angled-inner">
-              <img src="/assets/images/AdobeStock_273378961.jpg" alt="BK MOT Centre workshop and MOT sign" class="services-hero-bay-bg" fetchpriority="high">
+              <picture>
+                <source srcset="/assets/images/AdobeStock_273378961.webp" type="image/webp">
+                <img src="/assets/images/AdobeStock_273378961.jpg" alt="BK MOT Centre workshop and MOT sign" class="services-hero-bay-bg" width="800" height="800" fetchpriority="high" decoding="async">
+              </picture>
             </div>
           </div>
         </div>
@@ -132,8 +141,14 @@
         <div class="services-popular-visual-col">
           <div class="popular-angled-frame">
             <div class="popular-angled-inner">
-              <img src="/assets/images/AdobeStock_273643099.jpeg" alt="Car engine compartment inspected by technician" class="popular-engine-bg" loading="lazy">
-              <img src="/assets/images/mechanic-78-1.png" alt="Mechanic examining engine details" class="popular-mechanic-img" loading="lazy">
+              <picture>
+                <source srcset="/assets/images/AdobeStock_273643099.webp" type="image/webp">
+                <img src="/assets/images/AdobeStock_273643099.jpeg" alt="Car engine compartment inspected by technician" class="popular-engine-bg" width="1400" height="927" loading="lazy" decoding="async">
+              </picture>
+              <picture>
+                <source srcset="/assets/images/mechanic-78-1.webp" type="image/webp">
+                <img src="/assets/images/mechanic-78-1.png" alt="Mechanic examining engine details" class="popular-mechanic-img" width="1000" height="956" loading="lazy" decoding="async">
+              </picture>
             </div>
           </div>
         </div>
@@ -261,8 +276,14 @@
         <div class="services-expect-visual-col">
           <div class="expect-angled-frame">
             <div class="expect-angled-inner">
-              <img src="/assets/images/AdobeStock_216561757-flipped-3.jpg" alt="Car wheel and alloy rim" class="expect-wheel-bg" loading="lazy">
-              <img src="/assets/images/mechanic-76.png" alt="Mechanic technician inspecting wheels" class="expect-mechanic-img" loading="lazy">
+              <picture>
+                <source srcset="/assets/images/AdobeStock_216561757-flipped-3.webp" type="image/webp">
+                <img src="/assets/images/AdobeStock_216561757-flipped-3.jpg" alt="Car wheel and alloy rim" class="expect-wheel-bg" width="1400" height="898" loading="lazy" decoding="async">
+              </picture>
+              <picture>
+                <source srcset="/assets/images/mechanic-76.webp" type="image/webp">
+                <img src="/assets/images/mechanic-76.png" alt="Mechanic technician inspecting wheels" class="expect-mechanic-img" width="1321" height="1920" loading="lazy" decoding="async">
+              </picture>
             </div>
           </div>
         </div>

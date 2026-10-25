@@ -39,26 +39,56 @@ function initMobileNav() {
 
   if (!toggleBtn || !siteNav) return;
 
-  toggleBtn.addEventListener('click', () => {
-    const isOpen = siteNav.classList.toggle('open');
-    toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  function toggleMenu(forceOpen) {
+    const isCurrentlyOpen = siteNav.classList.contains('open');
+    const willOpen = typeof forceOpen === 'boolean' ? forceOpen : !isCurrentlyOpen;
+
+    if (willOpen) {
+      siteNav.classList.add('open');
+      toggleBtn.setAttribute('aria-expanded', 'true');
+      siteNav.setAttribute('aria-hidden', 'false');
+      if (document.body) document.body.classList.add('nav-open');
+    } else {
+      siteNav.classList.remove('open');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+      siteNav.setAttribute('aria-hidden', 'true');
+      if (document.body) document.body.classList.remove('nav-open');
+    }
+  }
+
+  toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMenu();
   });
 
   // Close when clicking outside
   document.addEventListener('click', (e) => {
     if (!siteNav.contains(e.target) && !toggleBtn.contains(e.target) && siteNav.classList.contains('open')) {
-      siteNav.classList.remove('open');
-      toggleBtn.setAttribute('aria-expanded', 'false');
+      toggleMenu(false);
     }
   });
 
-  // Close when clicking a link
-  const navLinks = siteNav.querySelectorAll('.nav-link');
-  navLinks.forEach((link) => {
+  // Close on Escape key press and return focus to toggle button
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && siteNav.classList.contains('open')) {
+      toggleMenu(false);
+      toggleBtn.focus();
+    }
+  });
+
+  // Close when clicking any nav or drawer link
+  const interactiveLinks = siteNav.querySelectorAll('a');
+  interactiveLinks.forEach((link) => {
     link.addEventListener('click', () => {
-      siteNav.classList.remove('open');
-      toggleBtn.setAttribute('aria-expanded', 'false');
+      toggleMenu(false);
     });
+  });
+
+  // Close if window resizes to desktop breakpoint
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1080 && siteNav.classList.contains('open')) {
+      toggleMenu(false);
+    }
   });
 }
 
@@ -234,6 +264,16 @@ function initContactForm() {
       return;
     }
 
+    // Generate or reuse stable submissionId for safe idempotency
+    if (!form.dataset.submissionId) {
+      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        form.dataset.submissionId = crypto.randomUUID();
+      } else {
+        form.dataset.submissionId = 'sub_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      }
+    }
+    const submissionId = form.dataset.submissionId;
+
     // Prevent duplicate submission
     if (submitBtn) {
       submitBtn.disabled = true;
@@ -249,6 +289,7 @@ function initContactForm() {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
+          submissionId,
           name,
           phone,
           email,
@@ -264,12 +305,17 @@ function initContactForm() {
       if (response.ok && data.success) {
         showFeedback(data.message || 'Thank you! Your enquiry has been received. Our team will contact you shortly to confirm your booking date and time.', 'success');
         form.reset();
+        delete form.dataset.submissionId;
         // Reset turnstile if present
         if (typeof turnstile !== 'undefined') {
           try { turnstile.reset(); } catch {}
         }
       } else {
         // Honest error message: user input is preserved (do not reset form)
+        // Note: If turnstile failed, user needs a new token for next attempt
+        if (typeof turnstile !== 'undefined') {
+          try { turnstile.reset(); } catch {}
+        }
         const errorMsg = data.error || 'Online dispatch is currently unavailable. Please call us directly on 0121 558 9215 to book immediately.';
         showFeedback(errorMsg, 'error');
       }

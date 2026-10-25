@@ -6,6 +6,7 @@
 
 const assert = require('assert');
 const { onRequestPost, onRequestOptions } = require('../functions/api/contact.js');
+const { buildAll } = require('./build.js');
 
 let testsPassed = 0;
 let testsFailed = 0;
@@ -50,6 +51,7 @@ function createMockRequest({ method = 'POST', headers = {}, body = null, url = '
 
 async function runAllTests() {
   console.log('\n=== RUNNING BK MOT CENTRE CONTACT API TESTS ===\n');
+  buildAll();
 
   // Test 1: Rejection of invalid HTTP Content-Type
   await runTest('Invalid Content-Type rejection (returns 415)', async () => {
@@ -667,10 +669,10 @@ async function runAllTests() {
   await runTest('Build Verification: Generated pages include asset cache-busting query strings', async () => {
     const fs = require('fs');
     const path = require('path');
-    const contactHtml = fs.readFileSync(path.join(__dirname, '..', 'contactus', 'index.html'), 'utf8');
+    const contactHtml = fs.readFileSync(path.join(__dirname, '..', 'dist', 'contactus', 'index.html'), 'utf8');
 
-    assert.ok(contactHtml.includes('/js/main.js?v='), 'contactus/index.html must reference versioned /js/main.js?v=');
-    assert.ok(contactHtml.includes('/css/style.css?v='), 'contactus/index.html must reference versioned /css/style.css?v=');
+    assert.ok(contactHtml.includes('/js/main.js?v='), 'dist/contactus/index.html must reference versioned /js/main.js?v=');
+    assert.ok(contactHtml.includes('/css/style.css?v='), 'dist/contactus/index.html must reference versioned /css/style.css?v=');
   });
 
   // Test 23: Missing customer email sends garage email only (customerEmailSent: false)
@@ -975,6 +977,221 @@ async function runAllTests() {
     }
   });
 
+  // Test 28b: Client-provided submissionId creates deterministic SHA-256 refId and stable idempotency keys across retries
+  await runTest('Submission Idempotency: submissionId produces stable SHA-256 reference and identical Resend Idempotency-Key across retries', async () => {
+    const originalFetch = global.fetch;
+    const capturedKeys = [];
+    const capturedPayloads = [];
+
+    global.fetch = async (url, options = {}) => {
+      const urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr.includes('challenges.cloudflare.com/turnstile')) {
+        return { ok: true, status: 200, json: async () => ({ success: true }) };
+      }
+      if (urlStr.includes('api.resend.com/emails')) {
+        capturedKeys.push(options.headers['Idempotency-Key']);
+        if (options.body) {
+          capturedPayloads.push(JSON.parse(options.body));
+        }
+        return { ok: true, status: 200, json: async () => ({ id: 're_stable_123' }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const clientSubId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      const payload = {
+        submissionId: clientSubId,
+        name: 'Jane Doe',
+        phone: '01215589215',
+        email: 'jane@example.com',
+        service: 'MOT',
+        message: 'MOT annual test enquiry',
+        turnstileToken: 'token_attempt_1'
+      };
+
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      // First submission attempt
+      const res1 = await onRequestPost({ request: createMockRequest({ body: payload }), env });
+      const data1 = await res1.json();
+      assert.strictEqual(res1.status, 200);
+
+      // Second submission attempt (retry with fresh turnstile token but same submissionId)
+      payload.turnstileToken = 'token_attempt_2';
+      const res2 = await onRequestPost({ request: createMockRequest({ body: payload }), env });
+      const data2 = await res2.json();
+      assert.strictEqual(res2.status, 200);
+
+      // 1. Same submission ID consistently produces the exact same reference
+      assert.strictEqual(data1.ref, data2.ref, 'Ref IDs must match for the same submissionId across retries');
+      assert.ok(/^BK-[A-F0-9]{12}$/.test(data1.ref), 'Ref ID must match BK-<12-hex-chars> format');
+
+      // 2. Both outgoing emails contain the correct reference ID
+      assert.strictEqual(capturedPayloads.length, 4);
+      assert.ok(capturedPayloads[0].subject.includes(data1.ref), 'Garage email subject must include reference');
+      assert.ok(capturedPayloads[0].html.includes(data1.ref), 'Garage email HTML must include reference');
+      assert.ok(capturedPayloads[1].subject.includes(data1.ref), 'Customer email subject must include reference');
+      assert.ok(capturedPayloads[1].html.includes(data1.ref), 'Customer email HTML must include reference');
+
+      // 3. Verify all 4 dispatched emails (2 garage, 2 customer) used the exact same stable idempotency keys
+      assert.strictEqual(capturedKeys.length, 4);
+      assert.strictEqual(capturedKeys[0], `${clientSubId}-garage`);
+      assert.strictEqual(capturedKeys[1], `${clientSubId}-customer`);
+      assert.strictEqual(capturedKeys[2], `${clientSubId}-garage`);
+      assert.strictEqual(capturedKeys[3], `${clientSubId}-customer`);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 28c: Collision resistance test: Different submission IDs produce different references even if first 10 characters are identical
+  await runTest('Reference Digest: Distinct submission IDs with identical first 10 chars produce completely distinct references', async () => {
+    const originalFetch = global.fetch;
+
+    global.fetch = async (url, options = {}) => {
+      const urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr.includes('challenges.cloudflare.com/turnstile')) {
+        return { ok: true, status: 200, json: async () => ({ success: true }) };
+      }
+      if (urlStr.includes('api.resend.com/emails')) {
+        return { ok: true, status: 200, json: async () => ({ id: 're_mock_ok' }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      // Two submission IDs sharing identical first 10 characters: "1234567890..."
+      const subId1 = '1234567890-alpha-batch';
+      const subId2 = '1234567890-bravo-batch';
+
+      const res1 = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            submissionId: subId1,
+            name: 'Client Alpha',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Alpha booking test',
+            turnstileToken: 'token_alpha'
+          }
+        }),
+        env
+      });
+      const data1 = await res1.json();
+
+      const res2 = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            submissionId: subId2,
+            name: 'Client Bravo',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Bravo booking test',
+            turnstileToken: 'token_bravo'
+          }
+        }),
+        env
+      });
+      const data2 = await res2.json();
+
+      assert.notStrictEqual(data1.ref, data2.ref, 'Distinct submission IDs must never collide, even with common prefixes');
+      assert.ok(/^BK-[A-F0-9]{12}$/.test(data1.ref), 'data1.ref format must be valid');
+      assert.ok(/^BK-[A-F0-9]{12}$/.test(data2.ref), 'data2.ref format must be valid');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 28d: Backward compatibility & safe handling of missing and invalid submission IDs
+  await runTest('SubmissionId Validation: Missing, malformed or invalid submission IDs fall back safely without error', async () => {
+    const originalFetch = global.fetch;
+
+    global.fetch = async (url, options = {}) => {
+      const urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr.includes('challenges.cloudflare.com/turnstile')) {
+        return { ok: true, status: 200, json: async () => ({ success: true }) };
+      }
+      if (urlStr.includes('api.resend.com/emails')) {
+        return { ok: true, status: 200, json: async () => ({ id: 're_mock_fallback' }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      // Case A: Missing submissionId (legacy client)
+      const resMissing = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            name: 'Legacy Client',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Legacy client enquiry',
+            turnstileToken: 'valid_token'
+          }
+        }),
+        env
+      });
+      const dataMissing = await resMissing.json();
+      assert.strictEqual(resMissing.status, 200);
+      assert.ok(dataMissing.ref.startsWith('BK-'), 'Fallback ref must start with BK-');
+
+      // Case B: Invalid characters (e.g. spaces or injection chars)
+      const resInvalid = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            submissionId: 'bad id with spaces and $#@! symbols',
+            name: 'Attacker Attempt',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Testing character filter',
+            turnstileToken: 'valid_token'
+          }
+        }),
+        env
+      });
+      const dataInvalid = await resInvalid.json();
+      assert.strictEqual(resInvalid.status, 200);
+      assert.ok(dataInvalid.ref.startsWith('BK-'), 'Invalid submissionId should safely fallback without crashing');
+
+      // Case C: Too short (<8 chars)
+      const resTooShort = await onRequestPost({
+        request: createMockRequest({
+          body: {
+            submissionId: 'short',
+            name: 'Short ID Client',
+            phone: '01215589215',
+            service: 'MOT',
+            message: 'Testing length boundary',
+            turnstileToken: 'valid_token'
+          }
+        }),
+        env
+      });
+      const dataTooShort = await resTooShort.json();
+      assert.strictEqual(resTooShort.status, 200);
+      assert.ok(dataTooShort.ref.startsWith('BK-'), 'Short submissionId should safely fallback');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
   // Test 29: Cloudflare Wrangler runtime variables validation
   await runTest('Configuration: wrangler.jsonc defines required non-secret runtime vars and preserves secrets', async () => {
     const fs = require('fs');
@@ -1017,11 +1234,51 @@ async function runAllTests() {
     assert.strictEqual(config.main, 'src/worker.js', 'Worker main entrypoint must be preserved');
     assert.strictEqual(config.compatibility_date, '2026-10-19', 'Worker compatibility date must be preserved');
     assert.strictEqual(config.observability && config.observability.enabled, true, 'Observability must be enabled');
-    assert.strictEqual(config.assets && config.assets.directory, '.', 'Assets directory must be "."');
+    assert.strictEqual(config.assets && config.assets.directory, 'dist', 'Assets directory must be "dist"');
     assert.strictEqual(config.assets && config.assets.binding, 'ASSETS', 'Assets binding must be "ASSETS"');
 
     // Ensure no named environments or routing changes
     assert.strictEqual(config.env, undefined, 'Must not define named environments in wrangler.jsonc');
+  });
+
+  // Test 30: Dedicated dist/ build output architecture validation
+  await runTest('Build Pipeline: dist/ contains all required public pages, assets, and configs without dev leakage', async () => {
+    const fs = require('fs');
+    const path = require('path');
+    const distDir = path.join(__dirname, '..', 'dist');
+
+    assert.ok(fs.existsSync(distDir), 'dist/ directory must exist after build');
+
+    // 1. All public HTML pages
+    const requiredPages = [
+      'index.html',
+      'aboutus/index.html',
+      'dpf-cleaning-service/index.html',
+      'services/index.html',
+      'contactus/index.html',
+      '404.html'
+    ];
+    for (const page of requiredPages) {
+      assert.ok(fs.existsSync(path.join(distDir, page)), `dist/${page} must be generated`);
+    }
+
+    // 2. Core static assets
+    assert.ok(fs.existsSync(path.join(distDir, 'css', 'style.css')), 'dist/css/style.css must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'js', 'main.js')), 'dist/js/main.js must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'assets', 'images', 'logo.png')), 'dist/assets/images/logo.png must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'favicon.png')), 'dist/favicon.png must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'favicon.svg')), 'dist/favicon.svg must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'robots.txt')), 'dist/robots.txt must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'sitemap.xml')), 'dist/sitemap.xml must exist');
+    assert.ok(fs.existsSync(path.join(distDir, '_headers')), 'dist/_headers must exist');
+    assert.ok(fs.existsSync(path.join(distDir, '_redirects')), 'dist/_redirects must exist');
+
+    // 3. Excludes dev tools and sources
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'package.json')), false, 'dist must not contain package.json');
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'tools')), false, 'dist must not contain tools/');
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'src')), false, 'dist must not contain src/');
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'components')), false, 'dist must not contain components/');
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'docs')), false, 'dist must not contain docs/');
   });
 
   console.log(`\n=== RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED ===\n`);

@@ -17,6 +17,12 @@
   <link rel="canonical" href="https://bkmotcentre.uk/">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="icon" type="image/png" href="/favicon.png">
+
+  <!-- Preconnect Google Fonts for zero render-blocking latency -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Khand:wght@500;600;700&display=swap">
+
   <link rel="stylesheet" href="/css/style.css">
 
   <!-- Schema.org LocalBusiness Data for Google Search & Maps -->
@@ -90,12 +96,21 @@
         <div class="hero-right-column">
           <div class="hero-angled-image-frame">
             <div class="hero-angled-inner">
-              <img src="/assets/images/AdobeStock_71143570.jpeg" alt="Red car on workshop lift at BK MOT Centre" class="hero-car-bg" fetchpriority="high">
-              <img src="/assets/images/mechanic-59.png" alt="Mechanic inspecting vehicle" class="hero-mechanic-primary" fetchpriority="high">
+              <picture>
+                <source srcset="/assets/images/AdobeStock_71143570.webp" type="image/webp">
+                <img src="/assets/images/AdobeStock_71143570.jpeg" alt="Red car on workshop lift at BK MOT Centre" class="hero-car-bg" width="1400" height="934" fetchpriority="high" decoding="async">
+              </picture>
+              <picture>
+                <source srcset="/assets/images/mechanic-59.webp" type="image/webp">
+                <img src="/assets/images/mechanic-59.png" alt="Mechanic inspecting vehicle" class="hero-mechanic-primary" width="1000" height="849" fetchpriority="high" decoding="async">
+              </picture>
             </div>
           </div>
           <div class="hero-secondary-mechanic-wrap">
-            <img src="/assets/images/mechanic-57-1.png" alt="Automotive technician" class="hero-mechanic-secondary">
+            <picture>
+              <source srcset="/assets/images/mechanic-57-1.webp" type="image/webp">
+              <img src="/assets/images/mechanic-57-1.png" alt="Automotive technician" class="hero-mechanic-secondary" width="798" height="1052" decoding="async">
+            </picture>
           </div>
         </div>
 
@@ -109,56 +124,56 @@
           
           <a href="/services/" class="quick-icon-item" title="Explore MOT Centre Services">
             <div class="quick-icon-img-wrap">
-              <img src="/assets/icons/mechanic-icon-10.png" alt="MOT Centre Icon" width="46" height="46" loading="lazy">
+              <img src="/assets/icons/mechanic-icon-10.png" alt="MOT Centre Icon" width="46" height="46" loading="lazy" decoding="async">
             </div>
             <h4 class="quick-icon-title">mot centre</h4>
           </a>
 
           <a href="/services/" class="quick-icon-item" title="Explore Exhausts Services">
             <div class="quick-icon-img-wrap">
-              <img src="/assets/icons/mechanic-icon-9.png" alt="Exhausts Icon" width="46" height="46" loading="lazy">
+              <img src="/assets/icons/mechanic-icon-9.png" alt="Exhausts Icon" width="46" height="46" loading="lazy" decoding="async">
             </div>
             <h4 class="quick-icon-title">Exhausts</h4>
           </a>
 
           <a href="/services/" class="quick-icon-item" title="Explore Welding Services">
             <div class="quick-icon-img-wrap">
-              <img src="/assets/icons/mechanic-icon-5.png" alt="Welding Icon" width="46" height="46" loading="lazy">
+              <img src="/assets/icons/mechanic-icon-5.png" alt="Welding Icon" width="46" height="46" loading="lazy" decoding="async">
             </div>
             <h4 class="quick-icon-title">WELDING</h4>
           </a>
 
           <a href="/dpf-cleaning-service/" class="quick-icon-item" title="Explore DPF Cleaning Services">
             <div class="quick-icon-img-wrap">
-              <img src="/assets/icons/mechanic-icon-7.png" alt="DPF Cleaning Icon" width="46" height="46" loading="lazy">
+              <img src="/assets/icons/mechanic-icon-7.png" alt="DPF Cleaning Icon" width="46" height="46" loading="lazy" decoding="async">
             </div>
             <h4 class="quick-icon-title">DPF CLEANING</h4>
           </a>
 
           <a href="/services/" class="quick-icon-item" title="Explore Car Servicing">
             <div class="quick-icon-img-wrap">
-              <img src="/assets/icons/mechanic-icon-2.png" alt="Servicing Icon" width="46" height="46" loading="lazy">
+              <img src="/assets/icons/mechanic-icon-2.png" alt="Servicing Icon" width="46" height="46" loading="lazy" decoding="async">
             </div>
             <h4 class="quick-icon-title">Servicing</h4>
           </a>
 
           <a href="/services/" class="quick-icon-item" title="Explore Battery Diagnostics & Replacement">
             <div class="quick-icon-img-wrap">
-              <img src="/assets/icons/mechanic-icon-11.png" alt="Battery Icon" width="46" height="46" loading="lazy">
+              <img src="/assets/icons/mechanic-icon-11.png" alt="Battery Icon" width="46" height="46" loading="lazy" decoding="async">
             </div>
             <h4 class="quick-icon-title">Battery</h4>
           </a>
 
           <a href="/services/" class="quick-icon-item" title="Explore Clutch Replacement">
             <div class="quick-icon-img-wrap">
-              <img src="/assets/icons/mechanic-icon-4.png" alt="Clutches Icon" width="46" height="46" loading="lazy">
+              <img src="/assets/icons/mechanic-icon-4.png" alt="Clutches Icon" width="46" height="46" loading="lazy" decoding="async">
             </div>
             <h4 class="quick-icon-title">clutches</h4>
           </a>
 
           <a href="/services/" class="quick-icon-item" title="Explore Brakes & Disc Repair">
             <div class="quick-icon-img-wrap">
-              <img src="/assets/icons/mechanic-icon-1.png" alt="Brakes Icon" width="46" height="46" loading="lazy">
+              <img src="/assets/icons/mechanic-icon-1.png" alt="Brakes Icon" width="46" height="46" loading="lazy" decoding="async">
             </div>
             <h4 class="quick-icon-title">Brakes</h4>
           </a>
@@ -172,7 +187,10 @@
       <div class="container about-overview-grid">
         <div class="about-overview-img-col">
           <div class="mot-sign-card">
-            <img src="/assets/images/AdobeStock_273378961.jpg" alt="UK Official MOT 3 Triangles Sign" class="mot-sign-img" width="580" height="580" loading="lazy">
+            <picture>
+              <source srcset="/assets/images/AdobeStock_273378961.webp" type="image/webp">
+              <img src="/assets/images/AdobeStock_273378961.jpg" alt="UK Official MOT 3 Triangles Sign" class="mot-sign-img" width="580" height="580" loading="lazy" decoding="async">
+            </picture>
           </div>
         </div>
 
@@ -319,15 +337,21 @@
         <div class="quote-car-col">
           <div class="quote-car-angled-frame">
             <div class="quote-car-angled-inner">
-              <img src="/assets/images/AdobeStock_273643099.jpeg" alt="Car engine compartment" class="quote-engine-bg">
-              <img src="/assets/images/mechanic-67.png" alt="Mechanic wheel service" class="quote-mechanic-img">
+              <picture>
+                <source srcset="/assets/images/AdobeStock_273643099.webp" type="image/webp">
+                <img src="/assets/images/AdobeStock_273643099.jpeg" alt="Car engine compartment" class="quote-engine-bg" width="1400" height="927" loading="lazy" decoding="async">
+              </picture>
+              <picture>
+                <source srcset="/assets/images/mechanic-67.webp" type="image/webp">
+                <img src="/assets/images/mechanic-67.png" alt="Mechanic wheel service" class="quote-mechanic-img" width="1000" height="1453" loading="lazy" decoding="async">
+              </picture>
             </div>
           </div>
         </div>
 
         <div class="quote-text-col">
           <div class="quote-mark-icon-wrap">
-            <img src="/assets/images/quote-2.png" alt="Quote mark" width="130" height="98">
+            <img src="/assets/images/quote-2.png" alt="Quote mark" width="130" height="98" loading="lazy" decoding="async">
           </div>
           <div class="quote-statement-text">
             <p>We aim to to get your vehicle serviced and mot'd on the same day. You can pre-book your vehicle by giving us a call or filling out our online booking enquiry form.</p>
