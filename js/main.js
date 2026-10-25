@@ -189,14 +189,20 @@ function initContactForm() {
       return;
     }
 
-    // Turnstile token if widget is active
+    // Turnstile token extraction (supports both DOM hidden input and JS API)
     let turnstileToken = '';
-    if (typeof turnstile !== 'undefined') {
+    const turnstileField = form.querySelector('[name="cf-turnstile-response"]');
+    if (turnstileField && turnstileField.value) {
+      turnstileToken = turnstileField.value.trim();
+    } else if (typeof turnstile !== 'undefined') {
       try {
         turnstileToken = turnstile.getResponse() || '';
-      } catch (tErr) {
-        // Turnstile optional if not initialized
-      }
+      } catch (tErr) {}
+    }
+
+    if (!turnstileToken && form.querySelector('.cf-turnstile')) {
+      showFeedback('Please complete the Cloudflare security verification check before sending.', 'error');
+      return;
     }
 
     // Prevent duplicate submission

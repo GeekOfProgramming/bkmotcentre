@@ -254,19 +254,27 @@ export async function onRequestPost(context) {
     );
   }
 
-  // 6. Cloudflare Turnstile Verification (if configured)
+  // 6. Cloudflare Turnstile Verification (Mandatory in production when configured)
   const remoteIp = request.headers.get('CF-Connecting-IP') || '';
   if (env && env.TURNSTILE_SECRET_KEY) {
+    if (!turnstileToken) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Security verification check is required before submitting.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
     const turnstileOutcome = await verifyTurnstile(turnstileToken, remoteIp, env.TURNSTILE_SECRET_KEY);
     if (!turnstileOutcome.success) {
+      console.warn(`[Contact API] Security verification rejected: ${turnstileOutcome.error}`);
       return new Response(
-        JSON.stringify({ success: false, error: 'Security verification failed. Please refresh and try again.' }),
+        JSON.stringify({ success: false, error: 'Security verification failed. Please refresh the page and try again.' }),
         { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
   }
 
-  // 7. Reference ID Generation (Zero PII Logging)
+  // 7. Reference Number (Telephone Reference - not an online tracking ticket)
   const refId = 'BK-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1000).toString(36).toUpperCase();
   console.log(`[Contact API] Ref: ${refId} | Service: ${service} | Turnstile: ${Boolean(env && env.TURNSTILE_SECRET_KEY)} | IP: [Redacted]`);
 
@@ -418,7 +426,7 @@ Garage Telephone: 0121 558 9215
     JSON.stringify({
       success: true,
       ref: refId,
-      message: 'Thank you! Your enquiry has been received. Our team will contact you promptly on your phone number to confirm your booking date and time.'
+      message: `Thank you! Your enquiry has been received. Our team will contact you promptly to confirm your booking date and time. (Enquiry Ref: ${refId} — quote this if you call our garage on 0121 558 9215).`
     }),
     { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
   );

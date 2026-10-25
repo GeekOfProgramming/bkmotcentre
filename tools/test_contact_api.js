@@ -234,6 +234,139 @@ async function runAllTests() {
     }
   });
 
+  // Test 11: Turnstile - Missing token when TURNSTILE_SECRET_KEY is configured (returns 400)
+  await runTest('Turnstile: Missing token when secret is configured (returns 400)', async () => {
+    const req = createMockRequest({
+      body: {
+        name: 'Bot Tester',
+        phone: '01215589215',
+        service: 'MOT',
+        message: 'Spam automated message without token'
+      }
+    });
+
+    const env = {
+      RESEND_API_KEY: 're_test_mock_key',
+      CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk',
+      TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret'
+    };
+
+    const res = await onRequestPost({ request: req, env });
+    assert.strictEqual(res.status, 400);
+    const data = await res.json();
+    assert.strictEqual(data.success, false);
+    assert.ok(data.error.includes('Security verification'));
+  });
+
+  // Test 12: Turnstile - Failed verification response from Cloudflare siteverify (returns 403)
+  await runTest('Turnstile: Failed verification check (returns 403)', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (url) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return {
+          ok: true,
+          json: async () => ({ success: false, 'error-codes': ['invalid-input-response'] })
+        };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: 'Bot Tester',
+          phone: '01215589215',
+          service: 'MOT',
+          message: 'Failed challenge test',
+          turnstileToken: 'invalid_token_123'
+        }
+      });
+
+      const env = {
+        RESEND_API_KEY: 're_test_mock_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk',
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret'
+      };
+
+      const res = await onRequestPost({ request: req, env });
+      assert.strictEqual(res.status, 403);
+      const data = await res.json();
+      assert.strictEqual(data.success, false);
+      assert.ok(data.error.includes('Security verification failed'));
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 13: Turnstile - Successful verification + Resend dispatch (returns 200)
+  await runTest('Turnstile: Successful verification proceeds to Resend dispatch (returns 200)', async () => {
+    const originalFetch = global.fetch;
+    let turnstileVerified = false;
+    let emailDispatched = false;
+
+    global.fetch = async (url) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        turnstileVerified = true;
+        return {
+          ok: true,
+          json: async () => ({ success: true })
+        };
+      }
+      if (url === 'https://api.resend.com/emails') {
+        emailDispatched = true;
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ id: 're_msg_valid_turnstile_123' })
+        };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: 'Legitimate Customer',
+          phone: '01215589215',
+          email: 'customer@example.co.uk',
+          service: 'MOT',
+          message: 'Would like to book an MOT check',
+          turnstileToken: 'valid_cf_turnstile_token'
+        }
+      });
+
+      const env = {
+        RESEND_API_KEY: 're_test_mock_key',
+        CONTACT_FROM_EMAIL: 'BK MOT Centre <bookings@bkmotcentre.uk>',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk',
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret'
+      };
+
+      const res = await onRequestPost({ request: req, env });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(data.success, true);
+      assert.ok(turnstileVerified, 'Turnstile must be verified before email dispatch');
+      assert.ok(emailDispatched, 'Email must be dispatched to Resend upon successful Turnstile');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 14: WWW to Apex Canonical 301 Redirect preserving path and query string
+  await runTest('Worker WWW redirect preserves path and query string', async () => {
+    const workerModule = await import('../src/worker.js');
+    const worker = workerModule.default;
+
+    const testUrl = 'https://www.bkmotcentre.uk/services/?query=brakes&filter=all#details';
+    const req = new Request(testUrl);
+    const res = await worker.fetch(req, {}, {});
+
+    assert.strictEqual(res.status, 301);
+    const location = res.headers.get('Location');
+    assert.strictEqual(location, 'https://bkmotcentre.uk/services/?query=brakes&filter=all#details');
+  });
+
   console.log(`\n=== RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED ===\n`);
   if (testsFailed > 0) {
     process.exit(1);
