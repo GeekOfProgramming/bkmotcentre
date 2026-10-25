@@ -45,7 +45,11 @@ body {
   top: 15px;
 }
 
-/* Accessible Image Defaults (Prevent Layout Shifts) */
+/* Accessible Image & Picture Defaults (Prevent Layout Shifts) */
+picture {
+  display: contents;
+}
+
 img {
   max-width: 100%;
   height: auto;
