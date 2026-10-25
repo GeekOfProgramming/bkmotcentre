@@ -400,6 +400,68 @@ async function runAllTests() {
     assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
   });
 
+  // Test 17: Worker Integration - OPTIONS /api/contact with untrusted origin rejects (returns 403, no allow-origin)
+  await runTest('Worker Integration: OPTIONS /api/contact with untrusted origin returns 403 with no allow-origin', async () => {
+    const workerModule = await import('../src/worker.js');
+    const worker = workerModule.default;
+
+    const req = new Request('https://bkmotcentre.uk/api/contact', {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'https://malicious-external-attacker.com'
+      }
+    });
+
+    const res = await worker.fetch(req, {}, {});
+    assert.strictEqual(res.status, 403);
+    assert.strictEqual(res.headers.get('Access-Control-Allow-Origin'), null);
+    assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    assert.strictEqual(res.headers.get('Pragma'), 'no-cache');
+    assert.strictEqual(res.headers.get('Expires'), '0');
+  });
+
+  // Test 18: Worker Integration - OPTIONS /api/contact with trusted production origin (returns 204 with matching CORS & no-cache)
+  await runTest('Worker Integration: OPTIONS /api/contact with trusted production origin returns 204 with CORS & no-cache', async () => {
+    const workerModule = await import('../src/worker.js');
+    const worker = workerModule.default;
+
+    const req = new Request('https://bkmotcentre.uk/api/contact', {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'https://bkmotcentre.uk'
+      }
+    });
+
+    const res = await worker.fetch(req, {}, {});
+    assert.strictEqual(res.status, 204);
+    assert.strictEqual(res.headers.get('Access-Control-Allow-Origin'), 'https://bkmotcentre.uk');
+    assert.ok(res.headers.get('Access-Control-Allow-Methods').includes('POST'));
+    assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    assert.strictEqual(res.headers.get('Pragma'), 'no-cache');
+    assert.strictEqual(res.headers.get('Expires'), '0');
+  });
+
+  // Test 19: Worker Integration - POST /api/contact verifies no-cache headers on worker API responses
+  await runTest('Worker Integration: POST /api/contact verifies no-cache headers on response', async () => {
+    const workerModule = await import('../src/worker.js');
+    const worker = workerModule.default;
+
+    const req = new Request('https://bkmotcentre.uk/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://bkmotcentre.uk'
+      },
+      body: JSON.stringify({ name: 'A' }) // Invalid name length will return 400
+    });
+
+    const res = await worker.fetch(req, {}, {});
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    assert.strictEqual(res.headers.get('Pragma'), 'no-cache');
+    assert.strictEqual(res.headers.get('Expires'), '0');
+  });
+
   console.log(`\n=== RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED ===\n`);
   if (testsFailed > 0) {
     process.exit(1);
