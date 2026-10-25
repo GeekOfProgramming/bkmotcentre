@@ -5,13 +5,13 @@
   "scripts": {
     "build": "node tools/build.js",
     "build:watch": "node tools/build.js --watch",
-    "dev": "node tools/build.js && npx live-server --port=3000 --open=index.html",
-    "start": "node tools/build.js && npx live-server --port=3000 --open=index.html",
-    "preview": "python -m http.server 3000",
+    "dev": "node tools/build.js && npx live-server dist --port=3000 --open=index.html",
+    "start": "node tools/build.js && npx live-server dist --port=3000 --open=index.html",
+    "preview": "python -m http.server 3000 --directory dist",
     "test": "node tools/test_contact_api.js",
     "deploy": "wrangler deploy",
     "worker:dev": "wrangler dev",
-    "pages:dev": "npx wrangler pages dev ."
+    "pages:dev": "npx wrangler pages dev dist"
   },
   "devDependencies": {
     "wrangler": "^4.152.0"

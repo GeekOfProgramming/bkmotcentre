@@ -6,6 +6,7 @@
 
 const assert = require('assert');
 const { onRequestPost, onRequestOptions } = require('../functions/api/contact.js');
+const { buildAll } = require('./build.js');
 
 let testsPassed = 0;
 let testsFailed = 0;
@@ -50,6 +51,7 @@ function createMockRequest({ method = 'POST', headers = {}, body = null, url = '
 
 async function runAllTests() {
   console.log('\n=== RUNNING BK MOT CENTRE CONTACT API TESTS ===\n');
+  buildAll();
 
   // Test 1: Rejection of invalid HTTP Content-Type
   await runTest('Invalid Content-Type rejection (returns 415)', async () => {
@@ -667,10 +669,10 @@ async function runAllTests() {
   await runTest('Build Verification: Generated pages include asset cache-busting query strings', async () => {
     const fs = require('fs');
     const path = require('path');
-    const contactHtml = fs.readFileSync(path.join(__dirname, '..', 'contactus', 'index.html'), 'utf8');
+    const contactHtml = fs.readFileSync(path.join(__dirname, '..', 'dist', 'contactus', 'index.html'), 'utf8');
 
-    assert.ok(contactHtml.includes('/js/main.js?v='), 'contactus/index.html must reference versioned /js/main.js?v=');
-    assert.ok(contactHtml.includes('/css/style.css?v='), 'contactus/index.html must reference versioned /css/style.css?v=');
+    assert.ok(contactHtml.includes('/js/main.js?v='), 'dist/contactus/index.html must reference versioned /js/main.js?v=');
+    assert.ok(contactHtml.includes('/css/style.css?v='), 'dist/contactus/index.html must reference versioned /css/style.css?v=');
   });
 
   // Test 23: Missing customer email sends garage email only (customerEmailSent: false)
@@ -1017,11 +1019,51 @@ async function runAllTests() {
     assert.strictEqual(config.main, 'src/worker.js', 'Worker main entrypoint must be preserved');
     assert.strictEqual(config.compatibility_date, '2026-10-19', 'Worker compatibility date must be preserved');
     assert.strictEqual(config.observability && config.observability.enabled, true, 'Observability must be enabled');
-    assert.strictEqual(config.assets && config.assets.directory, '.', 'Assets directory must be "."');
+    assert.strictEqual(config.assets && config.assets.directory, 'dist', 'Assets directory must be "dist"');
     assert.strictEqual(config.assets && config.assets.binding, 'ASSETS', 'Assets binding must be "ASSETS"');
 
     // Ensure no named environments or routing changes
     assert.strictEqual(config.env, undefined, 'Must not define named environments in wrangler.jsonc');
+  });
+
+  // Test 30: Dedicated dist/ build output architecture validation
+  await runTest('Build Pipeline: dist/ contains all required public pages, assets, and configs without dev leakage', async () => {
+    const fs = require('fs');
+    const path = require('path');
+    const distDir = path.join(__dirname, '..', 'dist');
+
+    assert.ok(fs.existsSync(distDir), 'dist/ directory must exist after build');
+
+    // 1. All public HTML pages
+    const requiredPages = [
+      'index.html',
+      'aboutus/index.html',
+      'dpf-cleaning-service/index.html',
+      'services/index.html',
+      'contactus/index.html',
+      '404.html'
+    ];
+    for (const page of requiredPages) {
+      assert.ok(fs.existsSync(path.join(distDir, page)), `dist/${page} must be generated`);
+    }
+
+    // 2. Core static assets
+    assert.ok(fs.existsSync(path.join(distDir, 'css', 'style.css')), 'dist/css/style.css must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'js', 'main.js')), 'dist/js/main.js must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'assets', 'images', 'logo.png')), 'dist/assets/images/logo.png must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'favicon.png')), 'dist/favicon.png must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'favicon.svg')), 'dist/favicon.svg must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'robots.txt')), 'dist/robots.txt must exist');
+    assert.ok(fs.existsSync(path.join(distDir, 'sitemap.xml')), 'dist/sitemap.xml must exist');
+    assert.ok(fs.existsSync(path.join(distDir, '_headers')), 'dist/_headers must exist');
+    assert.ok(fs.existsSync(path.join(distDir, '_redirects')), 'dist/_redirects must exist');
+
+    // 3. Excludes dev tools and sources
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'package.json')), false, 'dist must not contain package.json');
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'tools')), false, 'dist must not contain tools/');
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'src')), false, 'dist must not contain src/');
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'components')), false, 'dist must not contain components/');
+    assert.strictEqual(fs.existsSync(path.join(distDir, 'docs')), false, 'dist must not contain docs/');
   });
 
   console.log(`\n=== RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED ===\n`);
