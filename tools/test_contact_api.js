@@ -1,10 +1,11 @@
 /**
  * Automated Test Suite for BK MOT Centre Contact API & Worker
- * Tests input validation, security controls, XSS escaping, mocked Resend integration, and fail-safes.
+ * Tests input validation, security controls, XSS escaping, mocked Resend integration,
+ * Turnstile fail-closed verification, and no-cache policies.
  */
 
 const assert = require('assert');
-const { onRequestPost } = require('../functions/api/contact.js');
+const { onRequestPost, onRequestOptions } = require('../functions/api/contact.js');
 
 let testsPassed = 0;
 let testsFailed = 0;
@@ -60,10 +61,11 @@ async function runAllTests() {
     assert.strictEqual(res.status, 415);
     const data = await res.json();
     assert.strictEqual(data.success, false);
+    assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
   });
 
-  // Test 2: Rejection of untrusted Origin
-  await runTest('Untrusted Origin rejection (returns 403)', async () => {
+  // Test 2: Rejection of untrusted Origin without reflecting arbitrary origin
+  await runTest('Untrusted Origin rejection (returns 403 & no arbitrary origin reflection)', async () => {
     const req = createMockRequest({
       headers: { 'Origin': 'https://malicious-scam-site.com' },
       body: { name: 'John Doe', phone: '01215589215' }
@@ -72,6 +74,7 @@ async function runAllTests() {
     assert.strictEqual(res.status, 403);
     const data = await res.json();
     assert.strictEqual(data.success, false);
+    assert.notStrictEqual(res.headers.get('Access-Control-Allow-Origin'), 'https://malicious-scam-site.com');
   });
 
   // Test 3: Empty name validation
@@ -128,29 +131,77 @@ async function runAllTests() {
     assert.strictEqual(res.status, 413);
   });
 
-  // Test 8: Fail-safe behavior when RESEND_API_KEY is missing (returns 503, no crash)
-  await runTest('Missing RESEND_API_KEY returns safe 503 without crashing', async () => {
+  // Test 8: Fail-safe behavior when TURNSTILE_SECRET_KEY is missing (Mandatory fail-closed, returns 503)
+  await runTest('Missing mandatory TURNSTILE_SECRET_KEY returns safe 503 (Fail-Closed)', async () => {
     const req = createMockRequest({
       body: {
         name: 'David Wilson',
         phone: '01215589215',
         service: 'MOT',
-        message: 'Looking to book an MOT for Saturday'
+        message: 'Looking to book an MOT for Saturday',
+        turnstileToken: 'valid_looking_token'
       }
     });
-    const res = await onRequestPost({ request: req, env: {} });
+    // Environment missing TURNSTILE_SECRET_KEY
+    const env = {
+      RESEND_API_KEY: 're_test_mock_secret_key',
+      CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+    };
+    const res = await onRequestPost({ request: req, env });
     assert.strictEqual(res.status, 503);
     const data = await res.json();
     assert.strictEqual(data.success, false);
     assert.ok(data.error.includes('0121 558 9215'));
+    assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
   });
 
-  // Test 9: Successful mocked Resend dispatch
+  // Test 9: Fail-safe behavior when RESEND_API_KEY is missing (returns 503)
+  await runTest('Missing RESEND_API_KEY returns safe 503 without crashing', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (url) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const req = createMockRequest({
+        body: {
+          name: 'David Wilson',
+          phone: '01215589215',
+          service: 'MOT',
+          message: 'Looking to book an MOT for Saturday',
+          turnstileToken: 'mock_turnstile_token'
+        }
+      });
+      // Missing RESEND_API_KEY
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+      const res = await onRequestPost({ request: req, env });
+      assert.strictEqual(res.status, 503);
+      const data = await res.json();
+      assert.strictEqual(data.success, false);
+      assert.ok(data.error.includes('0121 558 9215'));
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  // Test 10: Successful mocked Resend dispatch with Turnstile verified
   await runTest('Successful Resend dispatch with mocked fetch (returns 200 & ref ID)', async () => {
     const originalFetch = global.fetch;
     let interceptedPayload = null;
 
     global.fetch = async (url, options) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return {
+          ok: true,
+          json: async () => ({ success: true })
+        };
+      }
       if (url === 'https://api.resend.com/emails') {
         interceptedPayload = JSON.parse(options.body);
         return {
@@ -169,11 +220,13 @@ async function runAllTests() {
           phone: '07999888777',
           email: 'agent007@mi6.gov.uk',
           service: 'DPF Cleaning',
-          message: 'DPF warning light illuminated on dashboard.'
+          message: 'DPF warning light illuminated on dashboard.',
+          turnstileToken: 'mock_verified_token'
         }
       });
 
       const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
         RESEND_API_KEY: 're_test_mock_secret_key',
         CONTACT_FROM_EMAIL: 'BK MOT Centre <bookings@bkmotcentre.uk>',
         CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
@@ -184,6 +237,7 @@ async function runAllTests() {
       const data = await res.json();
       assert.strictEqual(data.success, true);
       assert.ok(data.ref.startsWith('BK-'));
+      assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
       // Verify XSS escaping inside HTML body
       assert.ok(interceptedPayload.html.includes('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'));
@@ -195,10 +249,13 @@ async function runAllTests() {
     }
   });
 
-  // Test 10: Resend API failure handling (returns 502)
+  // Test 11: Resend API failure handling (returns 502)
   await runTest('Resend upstream API error handling (returns 502)', async () => {
     const originalFetch = global.fetch;
     global.fetch = async (url) => {
+      if (url.includes('turnstile/v0/siteverify')) {
+        return { ok: true, json: async () => ({ success: true }) };
+      }
       if (url === 'https://api.resend.com/emails') {
         return {
           ok: false,
@@ -215,11 +272,13 @@ async function runAllTests() {
           name: 'David Test',
           phone: '01215589215',
           service: 'Car Servicing',
-          message: 'Full service request'
+          message: 'Full service request',
+          turnstileToken: 'mock_verified_token'
         }
       });
 
       const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
         RESEND_API_KEY: 're_test_invalid_key',
         CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
       };
@@ -229,12 +288,13 @@ async function runAllTests() {
       const data = await res.json();
       assert.strictEqual(data.success, false);
       assert.ok(data.error.includes('0121 558 9215'));
+      assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
     } finally {
       global.fetch = originalFetch;
     }
   });
 
-  // Test 11: Turnstile - Missing token when TURNSTILE_SECRET_KEY is configured (returns 400)
+  // Test 12: Turnstile - Missing token when TURNSTILE_SECRET_KEY is configured (returns 400)
   await runTest('Turnstile: Missing token when secret is configured (returns 400)', async () => {
     const req = createMockRequest({
       body: {
@@ -256,9 +316,10 @@ async function runAllTests() {
     const data = await res.json();
     assert.strictEqual(data.success, false);
     assert.ok(data.error.includes('Security verification'));
+    assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
   });
 
-  // Test 12: Turnstile - Failed verification response from Cloudflare siteverify (returns 403)
+  // Test 13: Turnstile - Failed verification response from Cloudflare siteverify (returns 403)
   await runTest('Turnstile: Failed verification check (returns 403)', async () => {
     const originalFetch = global.fetch;
     global.fetch = async (url) => {
@@ -293,61 +354,7 @@ async function runAllTests() {
       const data = await res.json();
       assert.strictEqual(data.success, false);
       assert.ok(data.error.includes('Security verification failed'));
-    } finally {
-      global.fetch = originalFetch;
-    }
-  });
-
-  // Test 13: Turnstile - Successful verification + Resend dispatch (returns 200)
-  await runTest('Turnstile: Successful verification proceeds to Resend dispatch (returns 200)', async () => {
-    const originalFetch = global.fetch;
-    let turnstileVerified = false;
-    let emailDispatched = false;
-
-    global.fetch = async (url) => {
-      if (url.includes('turnstile/v0/siteverify')) {
-        turnstileVerified = true;
-        return {
-          ok: true,
-          json: async () => ({ success: true })
-        };
-      }
-      if (url === 'https://api.resend.com/emails') {
-        emailDispatched = true;
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({ id: 're_msg_valid_turnstile_123' })
-        };
-      }
-      return originalFetch(url);
-    };
-
-    try {
-      const req = createMockRequest({
-        body: {
-          name: 'Legitimate Customer',
-          phone: '01215589215',
-          email: 'customer@example.co.uk',
-          service: 'MOT',
-          message: 'Would like to book an MOT check',
-          turnstileToken: 'valid_cf_turnstile_token'
-        }
-      });
-
-      const env = {
-        RESEND_API_KEY: 're_test_mock_key',
-        CONTACT_FROM_EMAIL: 'BK MOT Centre <bookings@bkmotcentre.uk>',
-        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk',
-        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret'
-      };
-
-      const res = await onRequestPost({ request: req, env });
-      assert.strictEqual(res.status, 200);
-      const data = await res.json();
-      assert.strictEqual(data.success, true);
-      assert.ok(turnstileVerified, 'Turnstile must be verified before email dispatch');
-      assert.ok(emailDispatched, 'Email must be dispatched to Resend upon successful Turnstile');
+      assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
     } finally {
       global.fetch = originalFetch;
     }
@@ -365,6 +372,32 @@ async function runAllTests() {
     assert.strictEqual(res.status, 301);
     const location = res.headers.get('Location');
     assert.strictEqual(location, 'https://bkmotcentre.uk/services/?query=brakes&filter=all#details');
+  });
+
+  // Test 15: OPTIONS preflight with untrusted origin rejected without reflection (returns 403)
+  await runTest('OPTIONS preflight rejects untrusted origin without reflecting origin (returns 403)', async () => {
+    const req = createMockRequest({
+      method: 'OPTIONS',
+      headers: { 'Origin': 'https://attacker-domain.evil' }
+    });
+    const res = await onRequestOptions({ request: req, env: {} });
+    assert.strictEqual(res.status, 403);
+    assert.notStrictEqual(res.headers.get('Access-Control-Allow-Origin'), 'https://attacker-domain.evil');
+    assert.strictEqual(res.headers.get('Access-Control-Allow-Origin'), null);
+    assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  });
+
+  // Test 16: OPTIONS preflight with allowed origin returns 204 with no-cache headers
+  await runTest('OPTIONS preflight allows whitelisted origin (returns 204 with CORS & no-cache)', async () => {
+    const req = createMockRequest({
+      method: 'OPTIONS',
+      headers: { 'Origin': 'https://bkmotcentre.uk' }
+    });
+    const res = await onRequestOptions({ request: req, env: {} });
+    assert.strictEqual(res.status, 204);
+    assert.strictEqual(res.headers.get('Access-Control-Allow-Origin'), 'https://bkmotcentre.uk');
+    assert.ok(res.headers.get('Access-Control-Allow-Methods').includes('POST'));
+    assert.strictEqual(res.headers.get('Cache-Control'), 'no-store, no-cache, must-revalidate, proxy-revalidate');
   });
 
   console.log(`\n=== RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED ===\n`);
