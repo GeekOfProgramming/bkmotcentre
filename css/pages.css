@@ -804,9 +804,6 @@
   .hero-huge-title {
     font-size: 5rem;
   }
-  .header-actions {
-    display: none;
-  }
   .quick-icons-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
@@ -3168,8 +3165,49 @@
 .contact-select:focus,
 .contact-textarea:focus {
   border-bottom-color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.14);
   padding-left: 10px;
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: -2px;
+  border-radius: 2px 2px 0 0;
+}
+
+.turnstile-field-wrap {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.contact-blue-form-card .form-message {
+  padding: 14px 18px;
+  border-radius: 6px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: none;
+}
+
+.contact-blue-form-card .form-message.success {
+  display: block;
+  background-color: #064e3b;
+  color: #ecfdf5;
+  border: 1px solid #34d399;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.contact-blue-form-card .form-message.error {
+  display: block;
+  background-color: #7f1d1d;
+  color: #fef2f2;
+  border: 1px solid #f87171;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
 .contact-select {
@@ -3327,9 +3365,10 @@
 @media (max-width: 640px) {
   .contact-field-row {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
   .contact-giant-title {
-    font-size: 46px;
+    font-size: 44px;
   }
   .contact-address-lines {
     font-size: 16px;
@@ -3343,8 +3382,31 @@
   .contact-form-title {
     font-size: 36px;
   }
+  .contact-blue-form-card {
+    padding: 30px 18px;
+    border-radius: 6px;
+  }
   body.contact-page {
-    padding-bottom: 60px;
+    padding-bottom: 72px;
+  }
+}
+
+@media (max-width: 380px) {
+  .contact-blue-form-card {
+    padding: 22px 12px;
+  }
+  .contact-giant-title {
+    font-size: 34px;
+  }
+  .contact-form-title {
+    font-size: 28px;
+  }
+  .contact-big-phone-number {
+    font-size: 28px;
+  }
+  .contact-submit-btn {
+    font-size: 14px !important;
+    padding: 12px 16px !important;
   }
 }
 

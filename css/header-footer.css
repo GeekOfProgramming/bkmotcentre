@@ -130,6 +130,7 @@
   padding: 6px 0;
   position: relative;
   transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav-link::after {
@@ -153,10 +154,15 @@
   width: 100%;
 }
 
+.mobile-drawer-actions {
+  display: none;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
 }
 
 .header-call-btn {
@@ -197,11 +203,14 @@
   font-size: 18px;
   font-weight: 700;
   color: #f71635;
+  white-space: nowrap;
 }
 
 .header-book-btn {
   padding: 10px 22px !important;
   font-size: 13px !important;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .mobile-nav-toggle {
@@ -380,14 +389,32 @@
    Header & Footer Media Queries
    ========================================================================== */
 
-@media (max-width: 1024px) {
-  .header-actions {
+/* Compact Laptop / Intermediate Desktop (1081px - 1280px) */
+@media (max-width: 1280px) and (min-width: 1081px) {
+  .nav-list {
+    gap: 16px;
+  }
+  .nav-link {
+    font-size: 14px;
+  }
+  .call-btn-label {
     display: none;
+  }
+  .call-btn-val {
+    font-size: 16px;
+  }
+  .header-book-btn {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
   }
 }
 
-@media (max-width: 980px) {
+/* Tablet & Mobile Breakpoint (1080px and below down to 320px) */
+@media (max-width: 1080px) {
   .top-announcement-bar {
+    display: none;
+  }
+  .header-actions {
     display: none;
   }
   .mobile-nav-toggle {
@@ -402,12 +429,15 @@
     top: 72px;
     left: 0;
     width: 100%;
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     background-color: #ffffff;
-    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.12);
-    padding: 24px 20px 32px 20px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15);
+    padding: 20px 24px 36px 24px;
     display: none;
     z-index: 1000;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid #e2e8f0;
   }
   .site-nav.open {
     display: block;
@@ -443,10 +473,62 @@
     border-left-color: #f71635;
     padding-left: 22px;
   }
+  .mobile-drawer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .mobile-drawer-call {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 13px;
+    background-color: #021827;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+  }
+  .mobile-drawer-call:hover {
+    background-color: #0f273d;
+  }
+  .mobile-drawer-book {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px;
+    background-color: #f71635;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+  }
+  .mobile-drawer-book:hover {
+    background-color: #d90e2a;
+  }
   .mobile-sticky-action-bar {
     display: flex;
     gap: 10px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
   }
+  body {
+    padding-bottom: 72px;
+  }
+}
+
+body.nav-open {
+  overflow: hidden !important;
+  touch-action: none;
 }
 
 @keyframes slideDownMenu {
