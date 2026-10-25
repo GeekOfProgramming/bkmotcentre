@@ -12,44 +12,70 @@ export async function onRequestPost(context) {
     const { name, phone, email, service, message } = body;
 
     // Validate required fields
+    // Validate required fields
     if (!name || !phone) {
       return new Response(
-        JSON.stringify({ success: false, error: "Name and Phone are required." }),
+        JSON.stringify({ success: false, error: "Name and Phone number are required." }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Prepare log data
-    const enquiryData = {
-      timestamp: new Date().toISOString(),
-      name,
-      phone,
-      email: email || "Not provided",
-      service: service || "General Enquiry",
-      message: message || "No message provided"
-    };
+    // GDPR / Privacy: Anonymized operational log without exposing customer PII in console
+    const refId = Date.now().toString(36).toUpperCase();
+    console.log(`[Contact Enquiry] Ref: ${refId} | Service: ${service || 'General'} | Status: Received`);
 
-    console.log("New BK MOT Centre Enquiry Received:", JSON.stringify(enquiryData));
+    // Verify backend delivery channel is configured
+    const hasWebhook = env && env.NOTIFY_WEBHOOK_URL;
+    const hasResend = env && env.RESEND_API_KEY && env.ADMIN_EMAIL;
 
-    // Optional: If Discord or Slack Webhook is configured in Cloudflare Environment Variables
-    if (env && env.NOTIFY_WEBHOOK_URL) {
+    if (!hasWebhook && !hasResend) {
+      // Backend is not yet fully configured - prevent false success
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Online booking dispatch is currently undergoing setup. Please call our garage directly on 0121 558 9215 to book immediately."
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Forward to configured Webhook (Discord / Slack / Telegram)
+    if (hasWebhook) {
       try {
-        await fetch(env.NOTIFY_WEBHOOK_URL, {
+        const webhookRes = await fetch(env.NOTIFY_WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            content: `🚗 **New BK MOT Booking Enquiry**\n**Name:** ${name}\n**Phone:** ${phone}\n**Email:** ${email || 'N/A'}\n**Service:** ${service || 'General'}\n**Message:** ${message || 'N/A'}`
+            content: `🚗 **New BK MOT Booking Enquiry [${refId}]**\n**Name:** ${name}\n**Phone:** ${phone}\n**Email:** ${email || 'N/A'}\n**Service:** ${service || 'General'}\n**Message:** ${message || 'N/A'}`
           })
         });
+
+        if (!webhookRes.ok) {
+          console.error(`[Contact Enquiry] Ref: ${refId} | Webhook forwarding failed with status ${webhookRes.status}`);
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Unable to forward your enquiry right now. Please call us directly on 0121 558 9215."
+            }),
+            { status: 502, headers: { "Content-Type": "application/json" } }
+          );
+        }
       } catch (webhookErr) {
-        console.error("Webhook forwarding error:", webhookErr);
+        console.error(`[Contact Enquiry] Ref: ${refId} | Webhook dispatch error:`, webhookErr.message);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Failed to dispatch enquiry. Please call us directly on 0121 558 9215."
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
       }
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Enquiry successfully received by BK MOT Centre."
+        message: "Thank you! Your enquiry has been received. Our team will contact you shortly."
       }),
       {
         status: 200,
@@ -61,7 +87,7 @@ export async function onRequestPost(context) {
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ success: false, error: "Failed to process request: " + error.message }),
+      JSON.stringify({ success: false, error: "An unexpected error occurred. Please call 0121 558 9215." }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

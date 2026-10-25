@@ -127,26 +127,32 @@ function initFaqAccordion() {
 }
 
 /**
- * Contact & Booking Form Submission (Cloudflare Pages Function integration)
+ * Contact & Booking Form Submission (Cloudflare Workers API integration)
  */
 function initContactForm() {
-  const form = document.getElementById('contact-form');
+  const form = document.getElementById('contact-form') || document.getElementById('contact-page-form');
   const messageBox = document.getElementById('form-feedback');
 
-  if (!form || !messageBox) return;
+  if (!form) return;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const submitBtn = form.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Submit';
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Send Message';
 
     // Basic Validation
-    const name = form.querySelector('[name="name"]').value.trim();
-    const phone = form.querySelector('[name="phone"]').value.trim();
-    const email = form.querySelector('[name="email"]').value.trim();
-    const service = form.querySelector('[name="service"]').value;
-    const message = form.querySelector('[name="message"]').value.trim();
+    const nameInput = form.querySelector('[name="name"]');
+    const phoneInput = form.querySelector('[name="phone"]');
+    const emailInput = form.querySelector('[name="email"]');
+    const serviceInput = form.querySelector('[name="service"]');
+    const messageInput = form.querySelector('[name="message"]');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    const service = serviceInput ? serviceInput.value : '';
+    const message = messageInput ? messageInput.value.trim() : '';
 
     if (!name || !phone) {
       showFeedback('Please provide your name and phone number so we can reach you.', 'error');
@@ -165,18 +171,19 @@ function initContactForm() {
         body: JSON.stringify({ name, phone, email, service, message, timestamp: new Date().toISOString() })
       });
 
-      if (response.ok) {
-        showFeedback('Thank you! Your message has been received. Our team will contact you shortly.', 'success');
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.success) {
+        showFeedback(data.message || 'Thank you! Your message has been received. Our team will contact you shortly.', 'success');
         form.reset();
       } else {
-        // Fallback for static preview without function running
-        showFeedback('Thank you! Your enquiry has been registered. For immediate booking, please call us on 0121 558 9215.', 'success');
-        form.reset();
+        // Honest error feedback - never claim success when backend dispatch fails
+        const errorMsg = data.error || 'Online dispatch is currently unavailable. Please call us directly on 0121 558 9215 to book your slot.';
+        showFeedback(errorMsg, 'error');
       }
     } catch (err) {
-      // Graceful offline/local handling
-      showFeedback('Thank you! Your enquiry has been registered. For immediate bookings, call us directly on 0121 558 9215.', 'success');
-      form.reset();
+      // Honest network/offline error - never claim false success
+      showFeedback('Unable to connect to booking service. Please call us directly on 0121 558 9215.', 'error');
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -186,8 +193,13 @@ function initContactForm() {
   });
 
   function showFeedback(text, type) {
+    if (!messageBox) {
+      alert(text);
+      return;
+    }
     messageBox.textContent = text;
     messageBox.className = `form-message ${type}`;
+    messageBox.style.display = 'block';
     messageBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
