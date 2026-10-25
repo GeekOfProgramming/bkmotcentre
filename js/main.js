@@ -264,6 +264,12 @@ function initContactForm() {
       return;
     }
 
+    // Generate or reuse stable submissionId for safe idempotency
+    if (!form.dataset.submissionId) {
+      form.dataset.submissionId = 'sub_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    }
+    const submissionId = form.dataset.submissionId;
+
     // Prevent duplicate submission
     if (submitBtn) {
       submitBtn.disabled = true;
@@ -279,6 +285,7 @@ function initContactForm() {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
+          submissionId,
           name,
           phone,
           email,
@@ -294,12 +301,17 @@ function initContactForm() {
       if (response.ok && data.success) {
         showFeedback(data.message || 'Thank you! Your enquiry has been received. Our team will contact you shortly to confirm your booking date and time.', 'success');
         form.reset();
+        delete form.dataset.submissionId;
         // Reset turnstile if present
         if (typeof turnstile !== 'undefined') {
           try { turnstile.reset(); } catch {}
         }
       } else {
         // Honest error message: user input is preserved (do not reset form)
+        // Note: If turnstile failed, user needs a new token for next attempt
+        if (typeof turnstile !== 'undefined') {
+          try { turnstile.reset(); } catch {}
+        }
         const errorMsg = data.error || 'Online dispatch is currently unavailable. Please call us directly on 0121 558 9215 to book immediately.';
         showFeedback(errorMsg, 'error');
       }

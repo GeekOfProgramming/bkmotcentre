@@ -977,6 +977,67 @@ async function runAllTests() {
     }
   });
 
+  // Test 28b: Client-provided submissionId creates deterministic refId and stable idempotency keys across retries
+  await runTest('Submission Idempotency: submissionId produces stable reference and identical Resend Idempotency-Key across retries', async () => {
+    const originalFetch = global.fetch;
+    const capturedKeys = [];
+
+    global.fetch = async (url, options = {}) => {
+      const urlStr = typeof url === 'string' ? url : url.toString();
+      if (urlStr.includes('challenges.cloudflare.com/turnstile')) {
+        return { ok: true, status: 200, json: async () => ({ success: true }) };
+      }
+      if (urlStr.includes('api.resend.com/emails')) {
+        capturedKeys.push(options.headers['Idempotency-Key']);
+        return { ok: true, status: 200, json: async () => ({ id: 're_stable_123' }) };
+      }
+      return originalFetch(url, options);
+    };
+
+    try {
+      const clientSubId = 'sub_test_abc12345';
+      const payload = {
+        submissionId: clientSubId,
+        name: 'Jane Doe',
+        phone: '01215589215',
+        email: 'jane@example.com',
+        service: 'MOT',
+        message: 'MOT annual test enquiry',
+        turnstileToken: 'token_attempt_1'
+      };
+
+      const env = {
+        TURNSTILE_SECRET_KEY: '0x4AAAAAAFlMW_secret',
+        RESEND_API_KEY: 're_secret_key',
+        CONTACT_TO_EMAIL: 'garage@bkmotcentre.uk'
+      };
+
+      // First submission attempt
+      const res1 = await onRequestPost({ request: createMockRequest({ body: payload }), env });
+      const data1 = await res1.json();
+      assert.strictEqual(res1.status, 200);
+
+      // Second submission attempt (retry with fresh turnstile token but same submissionId)
+      payload.turnstileToken = 'token_attempt_2';
+      const res2 = await onRequestPost({ request: createMockRequest({ body: payload }), env });
+      const data2 = await res2.json();
+      assert.strictEqual(res2.status, 200);
+
+      // Verify reference numbers are identical across retries
+      assert.strictEqual(data1.ref, data2.ref, 'Ref IDs must match for the same submissionId');
+      assert.ok(data1.ref.startsWith('BK-SUBTEST'), 'Ref ID must be derived deterministically from submissionId');
+
+      // Verify all 4 dispatched emails (2 garage, 2 customer) used the exact same stable idempotency keys
+      assert.strictEqual(capturedKeys.length, 4);
+      assert.strictEqual(capturedKeys[0], `${clientSubId}-garage`);
+      assert.strictEqual(capturedKeys[1], `${clientSubId}-customer`);
+      assert.strictEqual(capturedKeys[2], `${clientSubId}-garage`);
+      assert.strictEqual(capturedKeys[3], `${clientSubId}-customer`);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
   // Test 29: Cloudflare Wrangler runtime variables validation
   await runTest('Configuration: wrangler.jsonc defines required non-secret runtime vars and preserves secrets', async () => {
     const fs = require('fs');

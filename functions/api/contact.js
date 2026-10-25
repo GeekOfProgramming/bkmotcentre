@@ -333,8 +333,24 @@ export async function onRequestPost(context) {
     );
   }
 
-  // 6. Reference Number (Telephone Reference - not an online tracking ticket)
-  const refId = 'BK-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1000).toString(36).toUpperCase();
+  // 6. Idempotency Key & Stable Reference Number
+  // A client may provide a submissionId (e.g. UUIDv4 or stable hex token) for retries
+  const rawSubmissionId = typeof body.submissionId === 'string' ? body.submissionId.trim() : '';
+  // Sanitize submissionId to alphanumeric and hyphens only, max 64 chars
+  const submissionId = /^[a-zA-Z0-9_-]{8,64}$/.test(rawSubmissionId) ? rawSubmissionId : null;
+
+  // Stable Reference ID derived from client submissionId or generated fresh
+  let refId;
+  if (submissionId) {
+    // Generate deterministic refId from submissionId (e.g. BK-<compact-submissionId>)
+    const compactSubId = submissionId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10).toUpperCase();
+    refId = `BK-${compactSubId}`;
+  } else {
+    refId = 'BK-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1000).toString(36).toUpperCase();
+  }
+
+  // Base key for upstream email idempotency
+  const idempotencyBase = submissionId || refId;
 
   // 7. Cloudflare Turnstile Verification (MANDATORY: Fail-closed in production)
   const turnstileSecret = env && env.TURNSTILE_SECRET_KEY;
@@ -613,7 +629,7 @@ Website: https://bkmotcentre.uk
     subject: garageSubject,
     html: garageHtmlContent,
     text: garageTextContent,
-    idempotencyKey: `${refId}-garage`
+    idempotencyKey: `${idempotencyBase}-garage`
   });
 
   if (!garageResult.success) {
@@ -639,7 +655,7 @@ Website: https://bkmotcentre.uk
       subject: customerSubject,
       html: customerHtmlContent,
       text: customerTextContent,
-      idempotencyKey: `${refId}-customer`
+      idempotencyKey: `${idempotencyBase}-customer`
     });
 
     if (customerResult.success) {
