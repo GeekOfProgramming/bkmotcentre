@@ -16,7 +16,8 @@ const PAGES_CONFIG = [
   { src: 'aboutus.html', dest: 'aboutus/index.html', active: 'about' },
   { src: 'dpf-cleaning-service.html', dest: 'dpf-cleaning-service/index.html', active: 'dpf' },
   { src: 'services.html', dest: 'services/index.html', active: 'services' },
-  { src: 'contactus.html', dest: 'contactus/index.html', active: 'contact' }
+  { src: 'contactus.html', dest: 'contactus/index.html', active: 'contact' },
+  { src: '404.html', dest: '404.html', active: '' }
 ];
 
 function getHeader(activePage) {
