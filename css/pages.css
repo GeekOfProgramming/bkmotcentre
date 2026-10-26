@@ -207,6 +207,7 @@
   position: relative;
   width: 100%;
   max-width: 820px;
+  aspect-ratio: 1400 / 934;
   overflow: hidden;
   transform: skewX(-22deg);
   border-radius: 4px;
@@ -490,6 +491,8 @@
 /* Red Floating Promo Card (Shifted down, exact Divi style) */
 .red-promo-floating-card {
   background-image: linear-gradient(180deg, #f71635 0%, rgba(247, 22, 53, 0.88) 100%), url('/assets/images/mechanic-05.jpg');
+  background-image: linear-gradient(180deg, #f71635 0%, rgba(247, 22, 53, 0.88) 100%), -webkit-image-set(url('/assets/images/mechanic-05.webp') 1x, url('/assets/images/mechanic-05.jpg') 1x);
+  background-image: linear-gradient(180deg, #f71635 0%, rgba(247, 22, 53, 0.88) 100%), image-set(url('/assets/images/mechanic-05.webp') type('image/webp'), url('/assets/images/mechanic-05.jpg') type('image/jpeg'));
   background-size: cover;
   background-position: center;
   padding: 70px 50px 50px;
@@ -603,6 +606,7 @@
   position: relative;
   width: 100%;
   max-width: 720px;
+  aspect-ratio: 1400 / 927;
   overflow: hidden;
   transform: skewX(-22deg);
   border-radius: 4px;
@@ -719,6 +723,8 @@
 /* Card 2: Booking Blue */
 .card-booking-blue {
   background-image: linear-gradient(180deg, rgba(2, 24, 39, 0.85) 0%, rgba(2, 24, 39, 0.75) 100%), url('/assets/images/mechanic-87.jpg');
+  background-image: linear-gradient(180deg, rgba(2, 24, 39, 0.85) 0%, rgba(2, 24, 39, 0.75) 100%), -webkit-image-set(url('/assets/images/mechanic-87.webp') 1x, url('/assets/images/mechanic-87.jpg') 1x);
+  background-image: linear-gradient(180deg, rgba(2, 24, 39, 0.85) 0%, rgba(2, 24, 39, 0.75) 100%), image-set(url('/assets/images/mechanic-87.webp') type('image/webp'), url('/assets/images/mechanic-87.jpg') type('image/jpeg'));
   background-size: cover;
   background-position: center;
   color: #ffffff;
@@ -1935,6 +1941,8 @@
 
 .dpf-promo-red-card {
   background-image: linear-gradient(180deg, #f71635 0%, rgba(247, 22, 53, 0.88) 100%), url('/assets/images/mechanic-05.jpg');
+  background-image: linear-gradient(180deg, #f71635 0%, rgba(247, 22, 53, 0.88) 100%), -webkit-image-set(url('/assets/images/mechanic-05.webp') 1x, url('/assets/images/mechanic-05.jpg') 1x);
+  background-image: linear-gradient(180deg, #f71635 0%, rgba(247, 22, 53, 0.88) 100%), image-set(url('/assets/images/mechanic-05.webp') type('image/webp'), url('/assets/images/mechanic-05.jpg') type('image/jpeg'));
   background-size: cover;
   background-position: center;
   padding: 100px 70px 70px 70px;
